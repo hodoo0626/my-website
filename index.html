@@ -809,6 +809,17 @@
         });
 
         accountSetupBtn.addEventListener('click', () => {
+            // Load existing account data if available
+            const savedAccount = localStorage.getItem('teacherAccount');
+            if (savedAccount) {
+                try {
+                    const account = JSON.parse(savedAccount);
+                    teacherId.value = account.id || '';
+                    // Don't pre-fill password for security
+                } catch (e) {
+                    console.error('Error loading account:', e);
+                }
+            }
             accountModal.classList.remove('hidden');
             teacherId.focus();
         });
@@ -820,6 +831,8 @@
         });
 
         studentViewBtn.addEventListener('click', () => {
+            // Reload all data to ensure sync across devices
+            loadAllData();
             studentModal.classList.remove('hidden');
             updateStudentYearSelect();
         });
@@ -941,14 +954,23 @@
         });
 
         loginBtn.addEventListener('click', () => {
-            // Load account data first in case it wasn't loaded properly
+            // Always reload account data from localStorage to ensure sync across devices
             const savedAccount = localStorage.getItem('teacherAccount');
             if (savedAccount) {
-                teacherAccount = JSON.parse(savedAccount);
+                try {
+                    teacherAccount = JSON.parse(savedAccount);
+                } catch (e) {
+                    console.error('Error parsing teacher account:', e);
+                    teacherAccount = { id: '', password: '' };
+                }
+            } else {
+                teacherAccount = { id: '', password: '' };
             }
             
             if (!teacherAccount.id || !teacherAccount.password) {
                 alert('먼저 교사 계정을 설정해주세요.');
+                accountModal.classList.remove('hidden');
+                teacherId.focus();
                 return;
             }
             loginModal.classList.remove('hidden');
@@ -2165,7 +2187,16 @@
         loadAllData();
         initializeRewardsForExistingStudents();
         updateLoginUI();
+        
+        // Ensure data is synced on page focus (when switching between devices)
+        window.addEventListener('focus', () => {
+            loadAllData();
+            updateYearSelect();
+            updateSubjectSelect();
+            updateStudentYearSelect();
+        });
+        
         // Don't show any section initially - require login first
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'969331e832778b68',t:'MTc1NDE5NjYzNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96933adb47888b68',t:'MTc1NDE5NzAwMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
