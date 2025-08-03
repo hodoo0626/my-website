@@ -20,21 +20,21 @@
 <body class="bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100 min-h-screen">
     <!-- Header -->
     <div class="bg-white cute-shadow mb-8">
-        <div class="container mx-auto px-6 py-4">
+        <div class="container mx-auto px-4 md:px-6 py-4">
             <div class="flex justify-between items-center">
-                <h1 class="text-4xl font-black text-indigo-700" style="font-family: 'Nunito', sans-serif; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">🌟 Minah Teacher's Class Points</h1>
-                <div class="flex items-center space-x-4">
-                    <button id="accountSetupBtn" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-semibold transition-colors">
-                        ⚙️ 계정 설정
+                <h1 class="text-lg md:text-4xl font-black text-indigo-700 ml-12 md:ml-0" style="font-family: 'Nunito', sans-serif; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">🌟 Minah Teacher's Class Points</h1>
+                <div class="flex items-center space-x-2 md:space-x-4">
+                    <button id="accountSetupBtn" class="bg-orange-500 hover:bg-orange-600 text-white px-3 md:px-6 py-2 rounded-full font-semibold transition-colors text-xs md:text-base">
+                        ⚙️ <span class="hidden md:inline">계정 설정</span>
                     </button>
-                    <div id="loginSection">
-                        <button id="studentViewBtn" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full font-semibold transition-colors">
-                            👨‍🎓 학생 조회
+                    <div id="loginSection" class="flex space-x-2 md:space-x-4">
+                        <button id="studentViewBtn" class="bg-green-500 hover:bg-green-600 text-white px-3 md:px-6 py-2 rounded-full font-semibold transition-colors text-xs md:text-base">
+                            👨‍🎓 <span class="hidden md:inline">학생 조회</span>
                         </button>
-                        <button id="loginBtn" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-full font-semibold transition-colors">
-                            👩‍🏫 교사 로그인
+                        <button id="loginBtn" class="bg-purple-500 hover:bg-purple-600 text-white px-3 md:px-6 py-2 rounded-full font-semibold transition-colors text-xs md:text-base">
+                            👩‍🏫 <span class="hidden md:inline">교사 로그인</span>
                         </button>
-                        <button id="logoutBtn" class="bg-red-400 hover:bg-red-500 text-white px-6 py-2 rounded-full font-semibold transition-colors hidden">
+                        <button id="logoutBtn" class="bg-red-400 hover:bg-red-500 text-white px-3 md:px-6 py-2 rounded-full font-semibold transition-colors hidden text-xs md:text-base">
                             로그아웃
                         </button>
                     </div>
@@ -52,7 +52,7 @@
             <!-- Rewards Section -->
             <div id="rewardsSection" class="hidden">
                 <h2 class="text-2xl font-bold text-purple-600 mb-6">🎁 보상 관리</h2>
-                <div id="rewardsDisplay" class="grid grid-cols-5 gap-4"></div>
+                <div id="rewardsDisplay" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
             </div>
 
             <!-- Settings Section -->
@@ -127,7 +127,7 @@
             <!-- Rewards Section -->
             <div id="rewardsSection" class="hidden">
                 <h2 class="text-2xl font-bold text-purple-600 mb-6">🎁 보상 관리</h2>
-                <div id="rewardsDisplay" class="grid grid-cols-5 gap-4"></div>
+                <div id="rewardsDisplay" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
             </div>
 
             <!-- Settings Section -->
@@ -242,7 +242,7 @@
             <!-- Rewards Section -->
             <div id="rewardsSection" class="hidden">
                 <h2 class="text-2xl font-bold text-purple-600 mb-6">🎁 보상 관리</h2>
-                <div id="rewardsDisplay" class="grid grid-cols-5 gap-4"></div>
+                <div id="rewardsDisplay" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
             </div>
 
             <!-- Settings Section -->
@@ -287,22 +287,29 @@
         </div>
     </div>
 
+    <!-- Mobile Menu Toggle -->
+    <button id="mobileMenuToggle" class="md:hidden fixed top-4 left-4 z-50 bg-purple-500 text-white p-3 rounded-full shadow-lg">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
+
     <div class="flex">
         <!-- Sidebar -->
-        <div class="w-56 bg-gradient-to-b from-purple-100 via-indigo-100 to-violet-100 h-screen fixed left-0 top-0 pt-24 px-4 shadow-2xl">
+        <div id="sidebar" class="w-56 md:w-56 bg-gradient-to-b from-purple-100 via-indigo-100 to-violet-100 h-screen fixed left-0 top-0 pt-24 px-4 shadow-2xl transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-40">
             <div class="space-y-3">
-                <div class="text-lg font-bold text-indigo-700 mb-3 px-3" style="font-family: 'Nunito', sans-serif;">📅 학년도 선택</div>
-                <select id="yearSelect" class="w-full px-4 py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-sm mb-4 bg-white text-purple-700 font-semibold">
+                <div class="text-sm md:text-lg font-bold text-indigo-700 mb-3 px-3" style="font-family: 'Nunito', sans-serif;">📅 학년도 선택</div>
+                <select id="yearSelect" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-xs md:text-sm mb-4 bg-white text-purple-700 font-semibold">
                     <option value="">학년도 선택</option>
                 </select>
                 
-                <div class="text-lg font-bold text-indigo-700 mb-3 px-3" style="font-family: 'Nunito', sans-serif;">📖 수업 선택</div>
-                <select id="subjectSelect" class="w-full px-4 py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-sm mb-4 bg-white text-purple-700 font-semibold">
+                <div class="text-sm md:text-lg font-bold text-indigo-700 mb-3 px-3" style="font-family: 'Nunito', sans-serif;">📖 수업 선택</div>
+                <select id="subjectSelect" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-xs md:text-sm mb-4 bg-white text-purple-700 font-semibold">
                     <option value="">수업 선택</option>
                 </select>
                 
-                <div class="text-lg font-bold text-indigo-700 mb-3 px-3" style="font-family: 'Nunito', sans-serif;">📚 반 선택</div>
-                <select id="classSelect" class="w-full px-4 py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-sm mb-5 bg-white text-purple-700 font-semibold">
+                <div class="text-sm md:text-lg font-bold text-indigo-700 mb-3 px-3" style="font-family: 'Nunito', sans-serif;">📚 반 선택</div>
+                <select id="classSelect" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-xs md:text-sm mb-5 bg-white text-purple-700 font-semibold">
                     <option value="">반을 선택하세요</option>
                     <option value="1반">1반</option>
                     <option value="2반">2반</option>
@@ -319,27 +326,30 @@
                 <!-- Menu Separator -->
                 <div class="border-t-2 border-gray-400 border-opacity-30 my-5"></div>
                 
-                <div class="text-lg font-bold text-indigo-700 mb-4 px-3" style="font-family: 'Nunito', sans-serif;">📋 메뉴</div>
-                <button id="menuPoints" class="menu-item w-full text-left px-4 py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-lg">
+                <div class="text-sm md:text-lg font-bold text-indigo-700 mb-4 px-3" style="font-family: 'Nunito', sans-serif;">📋 메뉴</div>
+                <button id="menuPoints" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
                     ✨ 포인트 관리
                 </button>
-                <button id="menuDetails" class="menu-item w-full text-left px-4 py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-lg">
+                <button id="menuDetails" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
                     📊 개별 포인트 조회
                 </button>
-                <button id="menuRewards" class="menu-item w-full text-left px-4 py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-lg">
+                <button id="menuRewards" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
                     🎁 보상 관리
                 </button>
-                <button id="menuStudents" class="menu-item w-full text-left px-4 py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-lg">
+                <button id="menuStudents" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
                     👥 학생 설정
                 </button>
-                <button id="menuSettings" class="menu-item w-full text-left px-4 py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-lg">
+                <button id="menuSettings" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
                     ⚙️ 설정
                 </button>
             </div>
         </div>
 
+        <!-- Overlay for mobile -->
+        <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+
         <!-- Main Content -->
-        <div class="ml-56 flex-1 px-8 pr-12">
+        <div class="md:ml-56 flex-1 px-4 md:px-8 pr-4 md:pr-12">
             <!-- Points Management -->
             <div id="pointsSection" class="space-y-8">
                 <!-- Teacher Controls -->
@@ -409,7 +419,7 @@
                 <!-- Point Addition Result -->
                 <div id="pointAdditionResult" class="bg-white rounded-2xl cute-shadow p-6 hidden">
                     <h2 class="text-2xl font-bold text-green-600 mb-4">✅ 포인트 추가 완료</h2>
-                    <div id="updatedStudentsDisplay" class="grid grid-cols-5 gap-4"></div>
+                    <div id="updatedStudentsDisplay" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
                 </div>
             </div>
 
@@ -430,10 +440,10 @@
                             ✕ 닫기
                         </button>
                     </div>
-                    <div id="topStudentsRanking" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    <div id="topStudentsRanking" class="grid grid-cols-1 gap-4"></div>
                 </div>
                 
-                <div id="studentDetails" class="grid grid-cols-5 gap-4"></div>
+                <div id="studentDetails" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
             </div>
 
             <!-- Student Settings -->
@@ -493,7 +503,7 @@
             <!-- Rewards Section -->
             <div id="rewardsSection" class="hidden">
                 <h2 class="text-2xl font-bold text-purple-600 mb-6">🎁 보상 관리</h2>
-                <div id="rewardsDisplay" class="grid grid-cols-5 gap-4"></div>
+                <div id="rewardsDisplay" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
             </div>
 
             <!-- Settings Section -->
@@ -693,6 +703,9 @@
         const showStatsBtn = document.getElementById('showStatsBtn');
         const hideStatsBtn = document.getElementById('hideStatsBtn');
         const statisticsPanel = document.getElementById('statisticsPanel');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
 
         // Menu navigation
         function showSection(section) {
@@ -754,12 +767,46 @@
             currentView = section;
         }
 
+        // Mobile menu toggle
+        mobileMenuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+            sidebarOverlay.classList.toggle('hidden');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+        });
+
+        // Close mobile menu when menu item is clicked
+        function closeMobileMenu() {
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                sidebarOverlay.classList.add('hidden');
+            }
+        }
+
         // Event listeners
-        menuPoints.addEventListener('click', () => showSection('points'));
-        menuDetails.addEventListener('click', () => showSection('details'));
-        menuStudents.addEventListener('click', () => showSection('students'));
-        menuRewards.addEventListener('click', () => showSection('rewards'));
-        menuSettings.addEventListener('click', () => showSection('settings'));
+        menuPoints.addEventListener('click', () => {
+            showSection('points');
+            closeMobileMenu();
+        });
+        menuDetails.addEventListener('click', () => {
+            showSection('details');
+            closeMobileMenu();
+        });
+        menuStudents.addEventListener('click', () => {
+            showSection('students');
+            closeMobileMenu();
+        });
+        menuRewards.addEventListener('click', () => {
+            showSection('rewards');
+            closeMobileMenu();
+        });
+        menuSettings.addEventListener('click', () => {
+            showSection('settings');
+            closeMobileMenu();
+        });
 
         accountSetupBtn.addEventListener('click', () => {
             accountModal.classList.remove('hidden');
@@ -894,6 +941,12 @@
         });
 
         loginBtn.addEventListener('click', () => {
+            // Load account data first in case it wasn't loaded properly
+            const savedAccount = localStorage.getItem('teacherAccount');
+            if (savedAccount) {
+                teacherAccount = JSON.parse(savedAccount);
+            }
+            
             if (!teacherAccount.id || !teacherAccount.password) {
                 alert('먼저 교사 계정을 설정해주세요.');
                 return;
@@ -957,7 +1010,7 @@
                     // Clear existing data for the class
                     classData[key][currentClass] = [];
                     
-                    // Process data (skip header row if exists)
+                    // Process data (skip header row - start from index 1)
                     for (let i = 1; i < jsonData.length; i++) {
                         const row = jsonData[i];
                         if (row[0] && row[1]) { // Check if both number and name exist
@@ -2114,5 +2167,5 @@
         updateLoginUI();
         // Don't show any section initially - require login first
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'968347ebb58e3274',t:'MTc1NDAyOTc2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'969331e832778b68',t:'MTc1NDE5NjYzNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
