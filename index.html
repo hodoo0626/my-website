@@ -831,10 +831,22 @@
         });
 
         studentViewBtn.addEventListener('click', () => {
-            // Reload all data to ensure sync across devices
+            // Force reload all data from localStorage to ensure sync across devices
+            console.log('Student view button clicked - reloading data...');
             loadAllData();
+            
+            // Debug: Check what data was loaded
+            console.log('Loaded yearSubjects:', yearSubjects);
+            console.log('Loaded classData keys:', Object.keys(classData));
+            
             studentModal.classList.remove('hidden');
             updateStudentYearSelect();
+            
+            // Force update the dropdowns after a small delay to ensure DOM is ready
+            setTimeout(() => {
+                updateStudentYearSelect();
+                console.log('Student year select updated');
+            }, 100);
         });
 
         studentViewCancel.addEventListener('click', () => {
@@ -954,25 +966,33 @@
         });
 
         loginBtn.addEventListener('click', () => {
-            // Always reload account data from localStorage to ensure sync across devices
+            // Force reload account data from localStorage to ensure sync across devices
+            console.log('Login button clicked - checking account...');
             const savedAccount = localStorage.getItem('teacherAccount');
+            console.log('Saved account from localStorage:', savedAccount);
+            
             if (savedAccount) {
                 try {
                     teacherAccount = JSON.parse(savedAccount);
+                    console.log('Parsed teacher account:', teacherAccount);
                 } catch (e) {
                     console.error('Error parsing teacher account:', e);
                     teacherAccount = { id: '', password: '' };
                 }
             } else {
+                console.log('No saved account found');
                 teacherAccount = { id: '', password: '' };
             }
             
             if (!teacherAccount.id || !teacherAccount.password) {
+                console.log('No valid account found, showing setup modal');
                 alert('먼저 교사 계정을 설정해주세요.');
                 accountModal.classList.remove('hidden');
                 teacherId.focus();
                 return;
             }
+            
+            console.log('Valid account found, showing login modal');
             loginModal.classList.remove('hidden');
             loginId.focus();
         });
@@ -2013,26 +2033,39 @@
         }
 
         function updateStudentYearSelect() {
+            console.log('Updating student year select...');
+            console.log('Available years:', Object.keys(yearSubjects));
+            
             studentYearSelect.innerHTML = '<option value="">학년도 선택</option>';
             Object.keys(yearSubjects).forEach(year => {
                 const option = document.createElement('option');
                 option.value = year;
                 option.textContent = year;
                 studentYearSelect.appendChild(option);
+                console.log('Added year option:', year);
             });
+            
+            console.log('Student year select updated with', studentYearSelect.options.length - 1, 'years');
         }
 
         function updateStudentSubjectSelect() {
-            studentSubjectSelect.innerHTML = '<option value="">수업 선택</option>';
+            console.log('Updating student subject select...');
             const selectedYear = studentYearSelect.value;
+            console.log('Selected year:', selectedYear);
+            console.log('Available subjects for year:', yearSubjects[selectedYear]);
+            
+            studentSubjectSelect.innerHTML = '<option value="">수업 선택</option>';
             if (selectedYear && yearSubjects[selectedYear]) {
                 yearSubjects[selectedYear].forEach(subject => {
                     const option = document.createElement('option');
                     option.value = subject;
                     option.textContent = subject;
                     studentSubjectSelect.appendChild(option);
+                    console.log('Added subject option:', subject);
                 });
             }
+            
+            console.log('Student subject select updated with', studentSubjectSelect.options.length - 1, 'subjects');
         }
 
         function updateStudentNameSelect() {
@@ -2124,35 +2157,70 @@
         }
 
         function loadAllData() {
+            console.log('Loading all data from localStorage...');
+            
             // Load teacher account
             const savedAccount = localStorage.getItem('teacherAccount');
             if (savedAccount) {
-                teacherAccount = JSON.parse(savedAccount);
+                try {
+                    teacherAccount = JSON.parse(savedAccount);
+                    console.log('Loaded teacher account:', teacherAccount);
+                } catch (e) {
+                    console.error('Error loading teacher account:', e);
+                    teacherAccount = { id: '', password: '' };
+                }
+            } else {
+                console.log('No teacher account found');
+                teacherAccount = { id: '', password: '' };
             }
 
-            // Load class data
+            // Load class data - clear existing data first
             const savedClassData = localStorage.getItem('classData');
             if (savedClassData) {
-                Object.assign(classData, JSON.parse(savedClassData));
+                try {
+                    // Clear existing data and load fresh
+                    Object.keys(classData).forEach(key => delete classData[key]);
+                    Object.assign(classData, JSON.parse(savedClassData));
+                    console.log('Loaded class data keys:', Object.keys(classData));
+                } catch (e) {
+                    console.error('Error loading class data:', e);
+                }
+            } else {
+                console.log('No class data found');
             }
 
-            // Load year subjects
+            // Load year subjects - clear existing data first
             const savedYearSubjects = localStorage.getItem('yearSubjects');
             if (savedYearSubjects) {
-                Object.assign(yearSubjects, JSON.parse(savedYearSubjects));
+                try {
+                    // Clear existing data and load fresh
+                    Object.keys(yearSubjects).forEach(key => delete yearSubjects[key]);
+                    Object.assign(yearSubjects, JSON.parse(savedYearSubjects));
+                    console.log('Loaded year subjects:', yearSubjects);
+                } catch (e) {
+                    console.error('Error loading year subjects:', e);
+                }
+            } else {
+                console.log('No year subjects found');
             }
 
             // Load reward settings
             const savedRewardSettings = localStorage.getItem('rewardSettings');
             if (savedRewardSettings) {
-                Object.assign(rewardSettings, JSON.parse(savedRewardSettings));
-                document.getElementById('rewardInterval').value = rewardSettings.interval;
-                document.getElementById('maxRewardPoints').value = rewardSettings.maxPoints;
+                try {
+                    Object.assign(rewardSettings, JSON.parse(savedRewardSettings));
+                    document.getElementById('rewardInterval').value = rewardSettings.interval;
+                    document.getElementById('maxRewardPoints').value = rewardSettings.maxPoints;
+                    console.log('Loaded reward settings:', rewardSettings);
+                } catch (e) {
+                    console.error('Error loading reward settings:', e);
+                }
             }
 
             // Update UI
             updateYearSelect();
             updateSubjectSelect();
+            console.log('Data loading completed');
         }
 
         // Auto-save data whenever changes are made
@@ -2188,15 +2256,33 @@
         initializeRewardsForExistingStudents();
         updateLoginUI();
         
-        // Ensure data is synced on page focus (when switching between devices)
+        // Ensure data is synced on page focus and visibility change (when switching between devices)
         window.addEventListener('focus', () => {
+            console.log('Window focused - reloading data...');
             loadAllData();
             updateYearSelect();
             updateSubjectSelect();
             updateStudentYearSelect();
         });
         
+        // Also sync when page becomes visible (mobile browsers)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                console.log('Page became visible - reloading data...');
+                loadAllData();
+                updateYearSelect();
+                updateSubjectSelect();
+                updateStudentYearSelect();
+            }
+        });
+        
+        // Force sync every 5 seconds to ensure mobile compatibility
+        setInterval(() => {
+            console.log('Periodic sync - reloading data...');
+            loadAllData();
+        }, 5000);
+        
         // Don't show any section initially - require login first
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96933adb47888b68',t:'MTc1NDE5NzAwMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9693409b51768b68',t:'MTc1NDE5NzIzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
