@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Crossword 퍼즐 학습지 생성기</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+textarea { width: 100%; height: 120px; }
+button { margin-top: 10px; margin-right: 10px; }
+#preview { display: flex; gap: 40px; margin-top: 20px; }
+table { border-collapse: collapse; }
+td { width: 30px; height: 30px; border: 1px solid #000; position: relative; }
+td.block { background: #000; }
+.number { position: absolute; top: 1px; left: 2px; font-size: 10px; }
+.letter { display: flex; justify-content: center; align-items: center; height: 100%; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>단어 Crossword 퍼즐 학습지 생성기</h1>
+<p>"단어:힌트" 형식으로 한 줄에 하나씩 입력하세요.</p>
+<textarea id="wordsInput" placeholder="예) apple:사과"></textarea><br>
+<button id="generateBtn">퍼즐 생성</button>
+<button id="downloadStudent" disabled>학생용 Word 다운로드</button>
+<button id="downloadAnswer" disabled>정답 Word 다운로드</button>
+<div id="preview">
+  <div>
+    <h2>학생용</h2>
+    <div id="studentGrid"></div>
+  </div>
+  <div>
+    <h2>정답</h2>
+    <div id="answerGrid"></div>
+  </div>
+</div>
+<div id="clues">
+  <h3>Across</h3>
+  <ol id="acrossList"></ol>
+  <h3>Down</h3>
+  <ol id="downList"></ol>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
+<script>
+const wordsInput = document.getElementById('wordsInput');
+const generateBtn = document.getElementById('generateBtn');
+const downloadStudentBtn = document.getElementById('downloadStudent');
+const downloadAnswerBtn = document.getElementById('downloadAnswer');
+const studentGridDiv = document.getElementById('studentGrid');
+const answerGridDiv = document.getElementById('answerGrid');
+const acrossList = document.getElementById('acrossList');
+const downList = document.getElementById('downList');
+
+let grid, placedWords, startMap, numberMap, bounds, acrossClues, downClues;
+
+function reset(){
+  grid = {}; placedWords = []; startMap = {}; numberMap = {};
+  bounds = {minRow:0,maxRow:0,minCol:0,maxCol:0};
+  acrossClues = []; downClues = [];
+}
+
+function parseInput(text){
+  return text.split('\n').map(l=>l.trim()).filter(l=>l).map(l=>{
+    const [w, ...rest] = l.split(':');
+    return {word:w.trim().toUpperCase(), clue:rest.join(':').trim()};
+  });
+}
+
+function setCell(r,c,letter){
+  grid[`${r},${c}`] = letter;
+  if (r < bounds.minRow) bounds.minRow = r;
+  if (c < bounds.minCol) bounds.minCol = c;
+  if (r > bounds.maxRow) bounds.maxRow = r;
+  if (c > bounds.maxCol) bounds.maxCol = c;
+}
+
+function placeFirst(entry){
+  const row = 0, col = 0;
+  for(let i=0;i<entry.word.length;i++) setCell(row, col+i, entry.word[i]);
+  const info = {...entry, row, col, orientation:'across'};
+  placedWords.push(info);
+  startMap[`${row},${col}`] = {across: info};
+}
+
+function canPlace(word, orientation, row, col){
+  for(let k=0;k<word.length;k++){
+    const r = orientation==='across'? row : row+k;
+    const c = orientation==='across'? col+k : col;
+    const key = `${r},${c}`;
+    const existing = grid[key];
+    if (existing && existing !== word[k]) return false;
+    if (existing !== word[k]){
+      if (orientation === 'across'){
+        if (grid[`${r-1},${c}`] || grid[`${r+1},${c}`]) return false;
+      } else {
+        if (grid[`${r},${c-1}`] || grid[`${r},${c+1}`]) return false;
+      }
+    }
+  }
+  if (orientation === 'across'){
+    if (grid[`${row},${col-1}`] || grid[`${row},${col+word.length}`]) return false;
+  } else {
+    if (grid[`${row-1},${col}`] || grid[`${row+word.length},${col}`]) return false;
+  }
+  return true;
+}
+
+function doPlace(entry, orientation, row, col){
+  for(let k=0;k<entry.word.length;k++){
+    const r = orientation==='across'? row : row+k;
+    const c = orientation==='across'? col+k : col;
+    setCell(r,c,entry.word[k]);
+  }
+  const info = {...entry, row, col, orientation};
+  placedWords.push(info);
+  if(!startMap[`${row},${col}`]) startMap[`${row},${col}`] = {};
+  startMap[`${row},${col}`][orientation] = info;
+}
+
+function placeWord(entry){
+  for(let i=0;i<entry.word.length;i++){
+    const ch = entry.word[i];
+    for(const pw of placedWords){
+      for(let j=0;j<pw.word.length;j++){
+        if (pw.word[j] === ch){
+          const orientation = pw.orientation === 'across' ? 'down' : 'across';
+          const row = pw.row + (pw.orientation === 'across' ? -i : j);
+          const col = pw.col + (pw.orientation === 'across' ? j : -i);
+          if (canPlace(entry.word, orientation, row, col)){
+            doPlace(entry, orientation, row, col);
+            return;
+          }
+        }
+      }
+    }
+  }
+  const row = bounds.maxRow + 2;
+  doPlace(entry, 'across', row, 0);
+}
+
+function assignNumbers(){
+  let num = 1;
+  for(let r=bounds.minRow;r<=bounds.maxRow;r++){
+    for(let c=bounds.minCol;c<=bounds.maxCol;c++){
+      const key = `${r},${c}`;
+      if (!grid[key]) continue;
+      const startInfo = startMap[key] || {};
+      let startA = startInfo.across && !grid[`${r},${c-1}`];
+      let startD = startInfo.down && !grid[`${r-1},${c}`];
+      if (startA || startD){
+        if (startA){
+          startInfo.across.number = num;
+          acrossClues.push({number:num, clue:startInfo.across.clue});
+        }
+        if (startD){
+          startInfo.down.number = num;
+          downClues.push({number:num, clue:startInfo.down.clue});
+        }
+        numberMap[key] = num;
+        num++;
+      }
+    }
+  }
+}
+
+function render(container, showLetters){
+  const table = document.createElement('table');
+  for(let r=bounds.minRow;r<=bounds.maxRow;r++){
+    const tr = document.createElement('tr');
+    for(let c=bounds.minCol;c<=bounds.maxCol;c++){
+      const key = `${r},${c}`;
+      const td = document.createElement('td');
+      if (grid[key]){
+        if (numberMap[key]){
+          const numDiv = document.createElement('div');
+          numDiv.className = 'number';
+          numDiv.textContent = numberMap[key];
+          td.appendChild(numDiv);
+        }
+        const letterDiv = document.createElement('div');
+        letterDiv.className = 'letter';
+        letterDiv.textContent = showLetters ? grid[key] : '';
+        td.appendChild(letterDiv);
+      } else {
+        td.className = 'block';
+      }
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+  container.innerHTML = '';
+  container.appendChild(table);
+}
+
+function renderClues(){
+  acrossList.innerHTML = '';
+  acrossClues.forEach(c=>{
+    const li = document.createElement('li');
+    li.textContent = c.clue;
+    acrossList.appendChild(li);
+  });
+  downList.innerHTML = '';
+  downClues.forEach(c=>{
+    const li = document.createElement('li');
+    li.textContent = c.clue;
+    downList.appendChild(li);
+  });
+}
+
+function downloadDocx(showLetters){
+  const doc = new docx.Document();
+  const rows = [];
+  for(let r=bounds.minRow;r<=bounds.maxRow;r++){
+    const cells = [];
+    for(let c=bounds.minCol;c<=bounds.maxCol;c++){
+      const key = `${r},${c}`;
+      if (grid[key]){
+        let txt = '';
+        if (numberMap[key]) txt += numberMap[key] + '\n';
+        if (showLetters) txt += grid[key];
+        cells.push(new docx.TableCell({
+          children:[new docx.Paragraph({text:txt})],
+          verticalAlign: docx.VerticalAlign.CENTER,
+          width: {size:500,type:docx.WidthType.DXA}
+        }));
+      } else {
+        cells.push(new docx.TableCell({
+          children:[new docx.Paragraph('')],
+          shading:{type:'clear', fill:'000000'},
+          width:{size:500,type:docx.WidthType.DXA}
+        }));
+      }
+    }
+    rows.push(new docx.TableRow({children:cells}));
+  }
+  const table = new docx.Table({rows});
+  const children = [table, new docx.Paragraph('Across')];
+  acrossClues.forEach(c=>children.push(new docx.Paragraph(`${c.number}. ${c.clue}`)));
+  children.push(new docx.Paragraph('Down'));
+  downClues.forEach(c=>children.push(new docx.Paragraph(`${c.number}. ${c.clue}`)));
+  doc.addSection({children});
+  docx.Packer.toBlob(doc).then(blob=>{
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = showLetters ? 'crossword_answer.docx' : 'crossword_student.docx';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+}
+
+generateBtn.addEventListener('click',()=>{
+  const entries = parseInput(wordsInput.value);
+  if (entries.length === 0) return;
+  reset();
+  placeFirst(entries[0]);
+  for(let i=1;i<entries.length;i++) placeWord(entries[i]);
+  assignNumbers();
+  render(studentGridDiv,false);
+  render(answerGridDiv,true);
+  renderClues();
+  downloadStudentBtn.disabled = false;
+  downloadAnswerBtn.disabled = false;
+});
+
+downloadStudentBtn.addEventListener('click',()=>downloadDocx(false));
+downloadAnswerBtn.addEventListener('click',()=>downloadDocx(true));
+</script>
+</body>
+</html>
