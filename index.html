@@ -87,15 +87,48 @@
                     </div>
 
                     <!-- Backup & Restore -->
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <button id="backupDataBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                            📥 데이터 백업 (다운로드)
-                        </button>
-                        <div class="relative">
-                            <input type="file" id="restoreFile" accept=".json" class="hidden">
-                            <button id="restoreDataBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                                📤 데이터 복원 (업로드)
-                            </button>
+                    <div class="space-y-4">
+                        <!-- Excel Backup Options -->
+                        <div class="bg-green-50 rounded-xl p-4">
+                            <h4 class="text-lg font-bold text-green-600 mb-3">📊 엑셀 백업 (추천)</h4>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                <button id="backupExcelAllBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📊 전체 데이터 엑셀 백업
+                                </button>
+                                <button id="backupExcelCurrentBtn" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📋 현재 반만 엑셀 백업
+                                </button>
+                            </div>
+                            <p class="text-sm text-green-700 mt-2">💡 엑셀 파일로 저장하면 학생별 포인트 내역을 쉽게 확인할 수 있어요!</p>
+                        </div>
+                        
+                        <!-- Excel Restore -->
+                        <div class="bg-blue-50 rounded-xl p-4">
+                            <h4 class="text-lg font-bold text-blue-600 mb-3">📤 엑셀 복원</h4>
+                            <div class="relative">
+                                <input type="file" id="restoreExcelFile" accept=".xlsx,.xls" class="hidden">
+                                <button id="restoreExcelBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📤 엑셀 파일로 데이터 복원
+                                </button>
+                            </div>
+                            <p class="text-sm text-blue-700 mt-2">💡 백업한 엑셀 파일을 업로드하면 데이터가 복원됩니다!</p>
+                        </div>
+                        
+                        <!-- JSON Backup (Advanced) -->
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <h4 class="text-lg font-bold text-gray-600 mb-3">⚙️ 고급 백업 (JSON)</h4>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                <button id="backupDataBtn" class="bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📥 JSON 백업
+                                </button>
+                                <div class="relative">
+                                    <input type="file" id="restoreFile" accept=".json" class="hidden">
+                                    <button id="restoreDataBtn" class="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-xl font-semibold transition-colors">
+                                        📤 JSON 복원
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">🔧 개발자용 백업 형식입니다.</p>
                         </div>
                     </div>
                     
@@ -217,15 +250,48 @@
                     </div>
 
                     <!-- Backup & Restore -->
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <button id="backupDataBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                            📥 데이터 백업 (다운로드)
-                        </button>
-                        <div class="relative">
-                            <input type="file" id="restoreFile" accept=".json" class="hidden">
-                            <button id="restoreDataBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                                📤 데이터 복원 (업로드)
-                            </button>
+                    <div class="space-y-4">
+                        <!-- Excel Backup Options -->
+                        <div class="bg-green-50 rounded-xl p-4">
+                            <h4 class="text-lg font-bold text-green-600 mb-3">📊 엑셀 백업 (추천)</h4>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                <button id="backupExcelAllBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📊 전체 데이터 엑셀 백업
+                                </button>
+                                <button id="backupExcelCurrentBtn" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📋 현재 반만 엑셀 백업
+                                </button>
+                            </div>
+                            <p class="text-sm text-green-700 mt-2">💡 엑셀 파일로 저장하면 학생별 포인트 내역을 쉽게 확인할 수 있어요!</p>
+                        </div>
+                        
+                        <!-- Excel Restore -->
+                        <div class="bg-blue-50 rounded-xl p-4">
+                            <h4 class="text-lg font-bold text-blue-600 mb-3">📤 엑셀 복원</h4>
+                            <div class="relative">
+                                <input type="file" id="restoreExcelFile" accept=".xlsx,.xls" class="hidden">
+                                <button id="restoreExcelBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📤 엑셀 파일로 데이터 복원
+                                </button>
+                            </div>
+                            <p class="text-sm text-blue-700 mt-2">💡 백업한 엑셀 파일을 업로드하면 데이터가 복원됩니다!</p>
+                        </div>
+                        
+                        <!-- JSON Backup (Advanced) -->
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <h4 class="text-lg font-bold text-gray-600 mb-3">⚙️ 고급 백업 (JSON)</h4>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                <button id="backupDataBtn" class="bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📥 JSON 백업
+                                </button>
+                                <div class="relative">
+                                    <input type="file" id="restoreFile" accept=".json" class="hidden">
+                                    <button id="restoreDataBtn" class="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-xl font-semibold transition-colors">
+                                        📤 JSON 복원
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">🔧 개발자용 백업 형식입니다.</p>
                         </div>
                     </div>
                     
@@ -387,15 +453,48 @@
                     </div>
 
                     <!-- Backup & Restore -->
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <button id="backupDataBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                            📥 데이터 백업 (다운로드)
-                        </button>
-                        <div class="relative">
-                            <input type="file" id="restoreFile" accept=".json" class="hidden">
-                            <button id="restoreDataBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                                📤 데이터 복원 (업로드)
-                            </button>
+                    <div class="space-y-4">
+                        <!-- Excel Backup Options -->
+                        <div class="bg-green-50 rounded-xl p-4">
+                            <h4 class="text-lg font-bold text-green-600 mb-3">📊 엑셀 백업 (추천)</h4>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                <button id="backupExcelAllBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📊 전체 데이터 엑셀 백업
+                                </button>
+                                <button id="backupExcelCurrentBtn" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📋 현재 반만 엑셀 백업
+                                </button>
+                            </div>
+                            <p class="text-sm text-green-700 mt-2">💡 엑셀 파일로 저장하면 학생별 포인트 내역을 쉽게 확인할 수 있어요!</p>
+                        </div>
+                        
+                        <!-- Excel Restore -->
+                        <div class="bg-blue-50 rounded-xl p-4">
+                            <h4 class="text-lg font-bold text-blue-600 mb-3">📤 엑셀 복원</h4>
+                            <div class="relative">
+                                <input type="file" id="restoreExcelFile" accept=".xlsx,.xls" class="hidden">
+                                <button id="restoreExcelBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📤 엑셀 파일로 데이터 복원
+                                </button>
+                            </div>
+                            <p class="text-sm text-blue-700 mt-2">💡 백업한 엑셀 파일을 업로드하면 데이터가 복원됩니다!</p>
+                        </div>
+                        
+                        <!-- JSON Backup (Advanced) -->
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <h4 class="text-lg font-bold text-gray-600 mb-3">⚙️ 고급 백업 (JSON)</h4>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                <button id="backupDataBtn" class="bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📥 JSON 백업
+                                </button>
+                                <div class="relative">
+                                    <input type="file" id="restoreFile" accept=".json" class="hidden">
+                                    <button id="restoreDataBtn" class="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-xl font-semibold transition-colors">
+                                        📤 JSON 복원
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">🔧 개발자용 백업 형식입니다.</p>
                         </div>
                     </div>
                     
@@ -703,15 +802,48 @@
                     </div>
 
                     <!-- Backup & Restore -->
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <button id="backupDataBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                            📥 데이터 백업 (다운로드)
-                        </button>
-                        <div class="relative">
-                            <input type="file" id="restoreFile" accept=".json" class="hidden">
-                            <button id="restoreDataBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                                📤 데이터 복원 (업로드)
-                            </button>
+                    <div class="space-y-4">
+                        <!-- Excel Backup Options -->
+                        <div class="bg-green-50 rounded-xl p-4">
+                            <h4 class="text-lg font-bold text-green-600 mb-3">📊 엑셀 백업 (추천)</h4>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                <button id="backupExcelAllBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📊 전체 데이터 엑셀 백업
+                                </button>
+                                <button id="backupExcelCurrentBtn" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📋 현재 반만 엑셀 백업
+                                </button>
+                            </div>
+                            <p class="text-sm text-green-700 mt-2">💡 엑셀 파일로 저장하면 학생별 포인트 내역을 쉽게 확인할 수 있어요!</p>
+                        </div>
+                        
+                        <!-- Excel Restore -->
+                        <div class="bg-blue-50 rounded-xl p-4">
+                            <h4 class="text-lg font-bold text-blue-600 mb-3">📤 엑셀 복원</h4>
+                            <div class="relative">
+                                <input type="file" id="restoreExcelFile" accept=".xlsx,.xls" class="hidden">
+                                <button id="restoreExcelBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📤 엑셀 파일로 데이터 복원
+                                </button>
+                            </div>
+                            <p class="text-sm text-blue-700 mt-2">💡 백업한 엑셀 파일을 업로드하면 데이터가 복원됩니다!</p>
+                        </div>
+                        
+                        <!-- JSON Backup (Advanced) -->
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <h4 class="text-lg font-bold text-gray-600 mb-3">⚙️ 고급 백업 (JSON)</h4>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                <button id="backupDataBtn" class="bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📥 JSON 백업
+                                </button>
+                                <div class="relative">
+                                    <input type="file" id="restoreFile" accept=".json" class="hidden">
+                                    <button id="restoreDataBtn" class="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-xl font-semibold transition-colors">
+                                        📤 JSON 복원
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">🔧 개발자용 백업 형식입니다.</p>
                         </div>
                     </div>
                     
@@ -930,6 +1062,10 @@
         const backupDataBtn = document.getElementById('backupDataBtn');
         const restoreDataBtn = document.getElementById('restoreDataBtn');
         const restoreFile = document.getElementById('restoreFile');
+        const backupExcelAllBtn = document.getElementById('backupExcelAllBtn');
+        const backupExcelCurrentBtn = document.getElementById('backupExcelCurrentBtn');
+        const restoreExcelBtn = document.getElementById('restoreExcelBtn');
+        const restoreExcelFile = document.getElementById('restoreExcelFile');
 
         // Menu navigation
         function showSection(section) {
@@ -2011,6 +2147,340 @@
             alert(`${currentTeacherId} 선생님의 데이터 백업이 완료되었습니다!`);
         }
 
+        function backupExcelAll() {
+            if (!currentTeacherId) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+            
+            if (Object.keys(classData).length === 0) {
+                alert('백업할 데이터가 없습니다.');
+                return;
+            }
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            
+            // Create summary sheet
+            const summaryData = [
+                ['교사 ID', currentTeacherId],
+                ['백업 날짜', new Date().toLocaleDateString('ko-KR')],
+                ['백업 시간', new Date().toLocaleTimeString('ko-KR')],
+                [''],
+                ['학년도', '수업명', '반', '학생 수', '총 포인트 기록']
+            ];
+            
+            let totalStudents = 0;
+            let totalPointRecords = 0;
+            
+            Object.keys(classData).forEach(key => {
+                const [year, subject] = key.split('-');
+                Object.keys(classData[key]).forEach(className => {
+                    const students = classData[key][className];
+                    if (students.length > 0) {
+                        const classPointRecords = students.reduce((sum, student) => sum + student.points.length, 0);
+                        summaryData.push([year, subject, className, students.length, classPointRecords]);
+                        totalStudents += students.length;
+                        totalPointRecords += classPointRecords;
+                    }
+                });
+            });
+            
+            summaryData.push(['', '', '총계', totalStudents, totalPointRecords]);
+            
+            const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, summaryWs, '백업 요약');
+            
+            // Create detailed sheets for each class
+            Object.keys(classData).forEach(key => {
+                const [year, subject] = key.split('-');
+                Object.keys(classData[key]).forEach(className => {
+                    const students = classData[key][className];
+                    if (students.length === 0) return;
+                    
+                    const sheetData = [
+                        [`${year}년도 ${subject} ${className} 포인트 현황`],
+                        ['백업 날짜: ' + new Date().toLocaleDateString('ko-KR')],
+                        [''],
+                        ['번호', '이름', '총점', '포인트 내역 (날짜 | 카테고리 | 점수 | 설명)']
+                    ];
+                    
+                    students.forEach(student => {
+                        const pointDetails = student.points.map(point => 
+                            `${point.date} | ${point.category} | +${point.value}점 | ${point.description || '없음'}`
+                        ).join(' / ');
+                        
+                        sheetData.push([
+                            student.number,
+                            student.name,
+                            student.totalPoints,
+                            pointDetails || '포인트 없음'
+                        ]);
+                    });
+                    
+                    // Add statistics
+                    sheetData.push(['']);
+                    sheetData.push(['통계']);
+                    sheetData.push(['총 학생 수', students.length]);
+                    sheetData.push(['평균 점수', (students.reduce((sum, s) => sum + s.totalPoints, 0) / students.length).toFixed(1)]);
+                    sheetData.push(['최고 점수', Math.max(...students.map(s => s.totalPoints))]);
+                    sheetData.push(['최저 점수', Math.min(...students.map(s => s.totalPoints))]);
+                    
+                    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+                    
+                    // Set column widths
+                    ws['!cols'] = [
+                        { width: 8 },   // 번호
+                        { width: 12 },  // 이름
+                        { width: 10 },  // 총점
+                        { width: 80 }   // 포인트 내역
+                    ];
+                    
+                    const sheetName = `${year}-${subject}-${className}`.substring(0, 31); // Excel sheet name limit
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                });
+            });
+            
+            // Save file
+            const fileName = `${currentTeacherId}-전체포인트현황-${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            alert(`전체 데이터가 엑셀 파일로 백업되었습니다!\n파일명: ${fileName}`);
+        }
+
+        function backupExcelCurrent() {
+            if (!currentTeacherId) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+            
+            if (!currentYear || !currentSubject || !currentClass) {
+                alert('학년도, 수업, 반을 모두 선택해주세요.');
+                return;
+            }
+            
+            const key = `${currentYear}-${currentSubject}`;
+            const students = classData[key] ? classData[key][currentClass] : [];
+            
+            if (students.length === 0) {
+                alert('현재 반에 학생 데이터가 없습니다.');
+                return;
+            }
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            
+            // Create main sheet
+            const sheetData = [
+                [`${currentYear}년도 ${currentSubject} ${currentClass} 포인트 현황`],
+                ['백업 날짜: ' + new Date().toLocaleDateString('ko-KR')],
+                ['교사: ' + currentTeacherId],
+                [''],
+                ['번호', '이름', '총점', '포인트 내역']
+            ];
+            
+            students.forEach(student => {
+                const pointDetails = student.points.map(point => 
+                    `${point.date} | ${point.category} | +${point.value}점 | ${point.description || '없음'}`
+                ).join(' / ');
+                
+                sheetData.push([
+                    student.number,
+                    student.name,
+                    student.totalPoints,
+                    pointDetails || '포인트 없음'
+                ]);
+            });
+            
+            // Add statistics
+            sheetData.push(['']);
+            sheetData.push(['=== 통계 ===']);
+            sheetData.push(['총 학생 수', students.length]);
+            sheetData.push(['평균 점수', (students.reduce((sum, s) => sum + s.totalPoints, 0) / students.length).toFixed(1)]);
+            sheetData.push(['최고 점수', Math.max(...students.map(s => s.totalPoints))]);
+            sheetData.push(['최저 점수', Math.min(...students.map(s => s.totalPoints))]);
+            
+            // Add detailed point history sheet
+            const detailData = [
+                [`${currentYear}년도 ${currentSubject} ${currentClass} 상세 포인트 기록`],
+                [''],
+                ['학생번호', '학생이름', '날짜', '카테고리', '점수', '설명']
+            ];
+            
+            students.forEach(student => {
+                if (student.points.length === 0) {
+                    detailData.push([student.number, student.name, '기록 없음', '', '', '']);
+                } else {
+                    student.points.forEach((point, index) => {
+                        detailData.push([
+                            index === 0 ? student.number : '',
+                            index === 0 ? student.name : '',
+                            point.date,
+                            point.category,
+                            point.value,
+                            point.description || ''
+                        ]);
+                    });
+                }
+            });
+            
+            const ws1 = XLSX.utils.aoa_to_sheet(sheetData);
+            const ws2 = XLSX.utils.aoa_to_sheet(detailData);
+            
+            // Set column widths
+            ws1['!cols'] = [
+                { width: 8 },   // 번호
+                { width: 12 },  // 이름
+                { width: 10 },  // 총점
+                { width: 80 }   // 포인트 내역
+            ];
+            
+            ws2['!cols'] = [
+                { width: 10 },  // 학생번호
+                { width: 12 },  // 학생이름
+                { width: 12 },  // 날짜
+                { width: 12 },  // 카테고리
+                { width: 8 },   // 점수
+                { width: 30 }   // 설명
+            ];
+            
+            XLSX.utils.book_append_sheet(wb, ws1, '포인트 현황');
+            XLSX.utils.book_append_sheet(wb, ws2, '상세 기록');
+            
+            // Save file
+            const fileName = `${currentTeacherId}-${currentYear}-${currentSubject}-${currentClass}-${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            alert(`${currentClass} 데이터가 엑셀 파일로 백업되었습니다!\n파일명: ${fileName}`);
+        }
+
+        function restoreExcelData(file) {
+            if (!currentTeacherId) {
+                alert('로그인이 필요합니다.');
+                restoreExcelFile.value = '';
+                return;
+            }
+            
+            if (!confirm('엑셀 파일로 데이터를 복원하시겠습니까? 기존 데이터와 중복될 수 있습니다.')) {
+                restoreExcelFile.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    let restoredClasses = 0;
+                    let restoredStudents = 0;
+                    
+                    // Process each sheet (skip summary sheet)
+                    workbook.SheetNames.forEach(sheetName => {
+                        if (sheetName === '백업 요약' || sheetName === '포인트 현황' || sheetName === '상세 기록') {
+                            return; // Skip summary and detail sheets
+                        }
+                        
+                        const worksheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        
+                        if (jsonData.length < 4) return; // Not enough data
+                        
+                        // Parse sheet name to get year, subject, class
+                        const parts = sheetName.split('-');
+                        if (parts.length < 3) return;
+                        
+                        const year = parts[0];
+                        const subject = parts[1];
+                        const className = parts[2];
+                        
+                        // Initialize data structures
+                        if (!yearSubjects[year]) {
+                            yearSubjects[year] = [];
+                        }
+                        if (!yearSubjects[year].includes(subject)) {
+                            yearSubjects[year].push(subject);
+                        }
+                        
+                        const key = `${year}-${subject}`;
+                        if (!classData[key]) {
+                            classData[key] = {
+                                '1반': [], '2반': [], '3반': [], '4반': [], '5반': [],
+                                '6반': [], '7반': [], '8반': [], '9반': [], '10반': []
+                            };
+                        }
+                        
+                        // Clear existing data for this class
+                        classData[key][className] = [];
+                        
+                        // Process student data (starting from row 4, index 3)
+                        for (let i = 3; i < jsonData.length; i++) {
+                            const row = jsonData[i];
+                            if (!row[0] || !row[1] || row[0] === '통계') break; // Stop at statistics or empty rows
+                            
+                            const student = {
+                                number: parseInt(row[0]),
+                                name: row[1],
+                                totalPoints: parseInt(row[2]) || 0,
+                                points: [],
+                                rewards: {}
+                            };
+                            
+                            // Parse point details from column 4
+                            if (row[3] && row[3] !== '포인트 없음') {
+                                const pointEntries = row[3].split(' / ');
+                                pointEntries.forEach(entry => {
+                                    const parts = entry.split(' | ');
+                                    if (parts.length >= 3) {
+                                        student.points.push({
+                                            id: Date.now() + Math.random(),
+                                            date: parts[0],
+                                            category: parts[1],
+                                            value: parseInt(parts[2].replace(/[^0-9]/g, '')) || 0,
+                                            description: parts[3] === '없음' ? '' : (parts[3] || '')
+                                        });
+                                    }
+                                });
+                            }
+                            
+                            classData[key][className].push(student);
+                            restoredStudents++;
+                        }
+                        
+                        restoredClasses++;
+                    });
+                    
+                    // Save restored data
+                    saveTeacherData(currentTeacherId);
+                    
+                    // Update UI
+                    updateYearSelect();
+                    updateSubjectSelect();
+                    displaySavedYearSubjects();
+                    updateStorageInfo();
+                    
+                    // Reset current selections
+                    currentYear = '';
+                    currentSubject = '';
+                    currentClass = '';
+                    yearSelect.value = '';
+                    subjectSelect.value = '';
+                    classSelect.value = '';
+                    hideAllSections();
+                    
+                    alert(`엑셀 데이터 복원이 완료되었습니다!\n복원된 반: ${restoredClasses}개\n복원된 학생: ${restoredStudents}명`);
+                    
+                } catch (error) {
+                    console.error('엑셀 복원 오류:', error);
+                    alert('엑셀 파일을 읽는 중 오류가 발생했습니다. 올바른 백업 파일인지 확인해주세요.');
+                }
+                
+                restoreExcelFile.value = '';
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
         function restoreAllData(file) {
             if (!currentTeacherId) {
                 alert('로그인이 필요합니다.');
@@ -2738,6 +3208,26 @@
             }
         });
 
+        // Excel backup/restore event listeners
+        backupExcelAllBtn.addEventListener('click', () => {
+            backupExcelAll();
+        });
+
+        backupExcelCurrentBtn.addEventListener('click', () => {
+            backupExcelCurrent();
+        });
+
+        restoreExcelBtn.addEventListener('click', () => {
+            restoreExcelFile.click();
+        });
+
+        restoreExcelFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                restoreExcelData(file);
+            }
+        });
+
         // Initialize
         initializeRewardsForExistingStudents();
         updateLoginUI();
@@ -2773,5 +3263,5 @@
         
         // Don't show any section initially - require login first
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'969d6783c70bd1de',t:'MTc1NDMwMzY4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'969d769b944bea0f',t:'MTc1NDMwNDMwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
