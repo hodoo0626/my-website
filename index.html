@@ -104,6 +104,12 @@
                             💡 <strong>팁:</strong> 정기적으로 데이터를 백업하여 포인트 기록을 안전하게 보관하세요!
                         </p>
                     </div>
+                    
+                    <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-sm text-blue-800">
+                            🌐 <strong>브라우저 호환성:</strong> 크롬, 웨일, 엣지, 파이어폭스 등 모든 브라우저에서 동일한 계정으로 데이터를 공유할 수 있습니다. 각 교사 계정의 데이터는 완전히 분리되어 관리됩니다.
+                        </p>
+                    </div>
                 </div>
 
                 <div class="bg-white rounded-2xl cute-shadow p-6">
@@ -226,6 +232,12 @@
                     <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <p class="text-sm text-yellow-800">
                             💡 <strong>팁:</strong> 정기적으로 데이터를 백업하여 포인트 기록을 안전하게 보관하세요!
+                        </p>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-sm text-blue-800">
+                            🌐 <strong>브라우저 호환성:</strong> 크롬, 웨일, 엣지, 파이어폭스 등 모든 브라우저에서 동일한 계정으로 데이터를 공유할 수 있습니다. 각 교사 계정의 데이터는 완전히 분리되어 관리됩니다.
                         </p>
                     </div>
                 </div>
@@ -390,6 +402,12 @@
                     <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <p class="text-sm text-yellow-800">
                             💡 <strong>팁:</strong> 정기적으로 데이터를 백업하여 포인트 기록을 안전하게 보관하세요!
+                        </p>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-sm text-blue-800">
+                            🌐 <strong>브라우저 호환성:</strong> 크롬, 웨일, 엣지, 파이어폭스 등 모든 브라우저에서 동일한 계정으로 데이터를 공유할 수 있습니다. 각 교사 계정의 데이터는 완전히 분리되어 관리됩니다.
                         </p>
                     </div>
                 </div>
@@ -702,6 +720,12 @@
                             💡 <strong>팁:</strong> 정기적으로 데이터를 백업하여 포인트 기록을 안전하게 보관하세요!
                         </p>
                     </div>
+                    
+                    <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-sm text-blue-800">
+                            🌐 <strong>브라우저 호환성:</strong> 크롬, 웨일, 엣지, 파이어폭스 등 모든 브라우저에서 동일한 계정으로 데이터를 공유할 수 있습니다. 각 교사 계정의 데이터는 완전히 분리되어 관리됩니다.
+                        </p>
+                    </div>
                 </div>
 
                 <div class="bg-white rounded-2xl cute-shadow p-6">
@@ -755,6 +779,7 @@
         let currentClass = '';
         let currentView = 'points';
         let teacherAccount = { id: '', password: '' };
+        let currentTeacherId = ''; // Current logged in teacher ID
         let isStudentView = false;
         let currentStudent = null;
         let rewardSettings = { interval: 10, maxPoints: 100 };
@@ -1031,13 +1056,9 @@
         });
 
         studentViewBtn.addEventListener('click', () => {
-            // Force reload all data from localStorage to ensure sync across devices
-            console.log('Student view button clicked - reloading data...');
-            loadAllData();
-            
-            // Debug: Check what data was loaded
-            console.log('Loaded yearSubjects:', yearSubjects);
-            console.log('Loaded classData keys:', Object.keys(classData));
+            // Load all teacher data for student view (students can see all teachers' data)
+            console.log('Student view button clicked - loading all teacher data...');
+            loadAllTeacherDataForStudentView();
             
             studentModal.classList.remove('hidden');
             updateStudentYearSelect();
@@ -1153,54 +1174,65 @@
                 return;
             }
             
-            teacherAccount.id = id;
-            teacherAccount.password = pwd;
+            // Check if account already exists
+            const existingAccounts = JSON.parse(localStorage.getItem('teacherAccounts') || '{}');
+            if (existingAccounts[id]) {
+                alert('이미 존재하는 아이디입니다. 다른 아이디를 사용해주세요.');
+                return;
+            }
             
-            // Save to localStorage
-            localStorage.setItem('teacherAccount', JSON.stringify(teacherAccount));
+            // Save new account
+            existingAccounts[id] = {
+                id: id,
+                password: pwd,
+                createdDate: new Date().toISOString()
+            };
+            
+            localStorage.setItem('teacherAccounts', JSON.stringify(existingAccounts));
             
             teacherId.value = '';
             teacherPwd.value = '';
             accountModal.classList.add('hidden');
-            alert('교사 계정이 설정되었습니다!');
+            alert('교사 계정이 생성되었습니다!');
         });
 
         loginBtn.addEventListener('click', () => {
-            // Force reload account data from localStorage to ensure sync across devices
-            console.log('Login button clicked - checking account...');
-            const savedAccount = localStorage.getItem('teacherAccount');
-            console.log('Saved account from localStorage:', savedAccount);
+            // Check if any accounts exist
+            const existingAccounts = JSON.parse(localStorage.getItem('teacherAccounts') || '{}');
             
-            if (savedAccount) {
-                try {
-                    teacherAccount = JSON.parse(savedAccount);
-                    console.log('Parsed teacher account:', teacherAccount);
-                } catch (e) {
-                    console.error('Error parsing teacher account:', e);
-                    teacherAccount = { id: '', password: '' };
-                }
-            } else {
-                console.log('No saved account found');
-                teacherAccount = { id: '', password: '' };
-            }
-            
-            if (!teacherAccount.id || !teacherAccount.password) {
-                console.log('No valid account found, showing setup modal');
-                alert('먼저 교사 계정을 설정해주세요.');
+            if (Object.keys(existingAccounts).length === 0) {
+                alert('먼저 교사 계정을 생성해주세요.');
                 accountModal.classList.remove('hidden');
                 teacherId.focus();
                 return;
             }
             
-            console.log('Valid account found, showing login modal');
             loginModal.classList.remove('hidden');
             loginId.focus();
         });
 
         logoutBtn.addEventListener('click', () => {
             isTeacherLoggedIn = false;
+            currentTeacherId = '';
             updateLoginUI();
             teacherControls.classList.add('hidden');
+            
+            // Clear current data
+            Object.keys(classData).forEach(key => delete classData[key]);
+            Object.keys(yearSubjects).forEach(key => delete yearSubjects[key]);
+            
+            // Reset UI
+            currentYear = '';
+            currentSubject = '';
+            currentClass = '';
+            yearSelect.value = '';
+            subjectSelect.value = '';
+            classSelect.value = '';
+            hideAllSections();
+            updateYearSelect();
+            updateSubjectSelect();
+            
+            alert('로그아웃되었습니다.');
         });
 
         loginCancel.addEventListener('click', () => {
@@ -1213,15 +1245,29 @@
             const id = loginId.value.trim();
             const pwd = loginPassword.value.trim();
             
-            if (id === teacherAccount.id && pwd === teacherAccount.password) {
+            if (!id || !pwd) {
+                alert('아이디와 비밀번호를 모두 입력해주세요.');
+                return;
+            }
+            
+            const existingAccounts = JSON.parse(localStorage.getItem('teacherAccounts') || '{}');
+            
+            if (existingAccounts[id] && existingAccounts[id].password === pwd) {
                 isTeacherLoggedIn = true;
+                currentTeacherId = id;
                 updateLoginUI();
                 loginModal.classList.add('hidden');
                 loginId.value = '';
                 loginPassword.value = '';
+                
+                // Load data for this specific teacher
+                loadTeacherData(id);
+                
                 if (currentClass && currentView === 'points') {
                     teacherControls.classList.remove('hidden');
                 }
+                
+                alert(`${id} 선생님, 환영합니다!`);
             } else {
                 alert('아이디 또는 비밀번호가 올바르지 않습니다.');
             }
@@ -1936,13 +1982,18 @@
         }
 
         function backupAllData() {
+            if (!currentTeacherId) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+            
             const backupData = {
+                teacherId: currentTeacherId,
                 classData: classData,
                 yearSubjects: yearSubjects,
-                teacherAccount: teacherAccount,
                 rewardSettings: rewardSettings,
                 backupDate: new Date().toISOString(),
-                version: '1.0'
+                version: '2.0'
             };
             
             const dataString = JSON.stringify(backupData, null, 2);
@@ -1951,16 +2002,22 @@
             
             const a = document.createElement('a');
             a.href = url;
-            a.download = `minah-class-points-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `${currentTeacherId}-class-points-backup-${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            alert('데이터 백업이 완료되었습니다! 파일이 다운로드됩니다.');
+            alert(`${currentTeacherId} 선생님의 데이터 백업이 완료되었습니다!`);
         }
 
         function restoreAllData(file) {
+            if (!currentTeacherId) {
+                alert('로그인이 필요합니다.');
+                restoreFile.value = '';
+                return;
+            }
+            
             if (!confirm('현재 데이터를 모두 삭제하고 백업 파일로 복원하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
                 restoreFile.value = '';
                 return;
@@ -1976,6 +2033,14 @@
                         throw new Error('올바르지 않은 백업 파일 형식입니다.');
                     }
                     
+                    // Check if backup is for current teacher (for v2.0+)
+                    if (backupData.version === '2.0' && backupData.teacherId && backupData.teacherId !== currentTeacherId) {
+                        if (!confirm(`이 백업 파일은 '${backupData.teacherId}' 선생님의 데이터입니다. 현재 로그인한 '${currentTeacherId}' 계정에 복원하시겠습니까?`)) {
+                            restoreFile.value = '';
+                            return;
+                        }
+                    }
+                    
                     // Clear existing data
                     Object.keys(classData).forEach(key => delete classData[key]);
                     Object.keys(yearSubjects).forEach(key => delete yearSubjects[key]);
@@ -1984,18 +2049,14 @@
                     Object.assign(classData, backupData.classData);
                     Object.assign(yearSubjects, backupData.yearSubjects);
                     
-                    if (backupData.teacherAccount) {
-                        Object.assign(teacherAccount, backupData.teacherAccount);
-                    }
-                    
                     if (backupData.rewardSettings) {
                         Object.assign(rewardSettings, backupData.rewardSettings);
                         document.getElementById('rewardInterval').value = rewardSettings.interval;
                         document.getElementById('maxRewardPoints').value = rewardSettings.maxPoints;
                     }
                     
-                    // Save to localStorage
-                    saveAllData();
+                    // Save to teacher-specific storage
+                    saveTeacherData(currentTeacherId);
                     
                     // Update UI
                     updateYearSelect();
@@ -2499,86 +2560,142 @@
             resetStudentSelects();
         }
 
-        // Save data functions
-        function saveAllData() {
-            localStorage.setItem('classData', JSON.stringify(classData));
-            localStorage.setItem('yearSubjects', JSON.stringify(yearSubjects));
-            localStorage.setItem('rewardSettings', JSON.stringify(rewardSettings));
+        // Save data functions - teacher-specific
+        function saveTeacherData(teacherId) {
+            if (!teacherId) return;
+            
+            const teacherData = {
+                classData: classData,
+                yearSubjects: yearSubjects,
+                rewardSettings: rewardSettings,
+                lastSaved: new Date().toISOString()
+            };
+            
+            localStorage.setItem(`teacherData_${teacherId}`, JSON.stringify(teacherData));
         }
 
-        function loadAllData() {
-            console.log('Loading all data from localStorage...');
+        function loadTeacherData(teacherId) {
+            if (!teacherId) return;
             
-            // Load teacher account
-            const savedAccount = localStorage.getItem('teacherAccount');
-            if (savedAccount) {
+            console.log(`Loading data for teacher: ${teacherId}`);
+            
+            // Clear existing data first
+            Object.keys(classData).forEach(key => delete classData[key]);
+            Object.keys(yearSubjects).forEach(key => delete yearSubjects[key]);
+            
+            // Load teacher-specific data
+            const savedTeacherData = localStorage.getItem(`teacherData_${teacherId}`);
+            if (savedTeacherData) {
                 try {
-                    teacherAccount = JSON.parse(savedAccount);
-                    console.log('Loaded teacher account:', teacherAccount);
+                    const teacherData = JSON.parse(savedTeacherData);
+                    
+                    if (teacherData.classData) {
+                        Object.assign(classData, teacherData.classData);
+                    }
+                    
+                    if (teacherData.yearSubjects) {
+                        Object.assign(yearSubjects, teacherData.yearSubjects);
+                    }
+                    
+                    if (teacherData.rewardSettings) {
+                        Object.assign(rewardSettings, teacherData.rewardSettings);
+                        document.getElementById('rewardInterval').value = rewardSettings.interval;
+                        document.getElementById('maxRewardPoints').value = rewardSettings.maxPoints;
+                    }
+                    
+                    console.log(`Loaded data for ${teacherId}:`, {
+                        classDataKeys: Object.keys(classData),
+                        yearSubjects: yearSubjects,
+                        rewardSettings: rewardSettings
+                    });
+                    
                 } catch (e) {
-                    console.error('Error loading teacher account:', e);
-                    teacherAccount = { id: '', password: '' };
+                    console.error(`Error loading data for teacher ${teacherId}:`, e);
                 }
             } else {
-                console.log('No teacher account found');
-                teacherAccount = { id: '', password: '' };
+                console.log(`No saved data found for teacher: ${teacherId}`);
             }
-
-            // Load class data - clear existing data first
-            const savedClassData = localStorage.getItem('classData');
-            if (savedClassData) {
-                try {
-                    // Clear existing data and load fresh
-                    Object.keys(classData).forEach(key => delete classData[key]);
-                    Object.assign(classData, JSON.parse(savedClassData));
-                    console.log('Loaded class data keys:', Object.keys(classData));
-                } catch (e) {
-                    console.error('Error loading class data:', e);
-                }
-            } else {
-                console.log('No class data found');
-            }
-
-            // Load year subjects - clear existing data first
-            const savedYearSubjects = localStorage.getItem('yearSubjects');
-            if (savedYearSubjects) {
-                try {
-                    // Clear existing data and load fresh
-                    Object.keys(yearSubjects).forEach(key => delete yearSubjects[key]);
-                    Object.assign(yearSubjects, JSON.parse(savedYearSubjects));
-                    console.log('Loaded year subjects:', yearSubjects);
-                } catch (e) {
-                    console.error('Error loading year subjects:', e);
-                }
-            } else {
-                console.log('No year subjects found');
-            }
-
-            // Load reward settings
-            const savedRewardSettings = localStorage.getItem('rewardSettings');
-            if (savedRewardSettings) {
-                try {
-                    Object.assign(rewardSettings, JSON.parse(savedRewardSettings));
-                    document.getElementById('rewardInterval').value = rewardSettings.interval;
-                    document.getElementById('maxRewardPoints').value = rewardSettings.maxPoints;
-                    console.log('Loaded reward settings:', rewardSettings);
-                } catch (e) {
-                    console.error('Error loading reward settings:', e);
-                }
-            }
-
+            
             // Update UI
             updateYearSelect();
             updateSubjectSelect();
-            console.log('Data loading completed');
+            displaySavedYearSubjects();
+            updateStorageInfo();
+        }
+
+        // Function to load all teacher data for student view
+        function loadAllTeacherDataForStudentView() {
+            console.log('Loading all teacher data for student view...');
+            
+            // Clear existing data first
+            Object.keys(classData).forEach(key => delete classData[key]);
+            Object.keys(yearSubjects).forEach(key => delete yearSubjects[key]);
+            
+            // Get all teacher accounts
+            const existingAccounts = JSON.parse(localStorage.getItem('teacherAccounts') || '{}');
+            
+            // Load and merge data from all teachers
+            Object.keys(existingAccounts).forEach(teacherId => {
+                const savedTeacherData = localStorage.getItem(`teacherData_${teacherId}`);
+                if (savedTeacherData) {
+                    try {
+                        const teacherData = JSON.parse(savedTeacherData);
+                        
+                        // Merge class data
+                        if (teacherData.classData) {
+                            Object.keys(teacherData.classData).forEach(key => {
+                                if (!classData[key]) {
+                                    classData[key] = {};
+                                }
+                                Object.assign(classData[key], teacherData.classData[key]);
+                            });
+                        }
+                        
+                        // Merge year subjects
+                        if (teacherData.yearSubjects) {
+                            Object.keys(teacherData.yearSubjects).forEach(year => {
+                                if (!yearSubjects[year]) {
+                                    yearSubjects[year] = [];
+                                }
+                                teacherData.yearSubjects[year].forEach(subject => {
+                                    if (!yearSubjects[year].includes(subject)) {
+                                        yearSubjects[year].push(subject);
+                                    }
+                                });
+                            });
+                        }
+                        
+                        console.log(`Loaded data from teacher: ${teacherId}`);
+                    } catch (e) {
+                        console.error(`Error loading data from teacher ${teacherId}:`, e);
+                    }
+                }
+            });
+            
+            console.log('Student view data loading completed:', {
+                classDataKeys: Object.keys(classData),
+                yearSubjects: yearSubjects
+            });
+        }
+
+        // Legacy function for backward compatibility (now does nothing if not logged in)
+        function loadAllData() {
+            console.log('loadAllData called - checking login status...');
+            if (currentTeacherId) {
+                loadTeacherData(currentTeacherId);
+            } else {
+                console.log('No teacher logged in - not loading data');
+            }
         }
 
         // Auto-save data whenever changes are made
         function autoSave() {
-            saveAllData();
-            // Update storage info if settings section is visible
-            if (currentView === 'settings' && !settingsSection.classList.contains('hidden')) {
-                updateStorageInfo();
+            if (currentTeacherId) {
+                saveTeacherData(currentTeacherId);
+                // Update storage info if settings section is visible
+                if (currentView === 'settings' && !settingsSection.classList.contains('hidden')) {
+                    updateStorageInfo();
+                }
             }
         }
 
@@ -2622,7 +2739,6 @@
         });
 
         // Initialize
-        loadAllData();
         initializeRewardsForExistingStudents();
         updateLoginUI();
         updateStorageInfo(); // Initialize storage info display
@@ -2630,30 +2746,32 @@
         // Ensure data is synced on page focus and visibility change (when switching between devices)
         window.addEventListener('focus', () => {
             console.log('Window focused - reloading data...');
-            loadAllData();
-            updateYearSelect();
-            updateSubjectSelect();
-            updateStudentYearSelect();
+            if (currentTeacherId) {
+                loadTeacherData(currentTeacherId);
+                updateYearSelect();
+                updateSubjectSelect();
+            }
         });
         
         // Also sync when page becomes visible (mobile browsers)
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
+            if (!document.hidden && currentTeacherId) {
                 console.log('Page became visible - reloading data...');
-                loadAllData();
+                loadTeacherData(currentTeacherId);
                 updateYearSelect();
                 updateSubjectSelect();
-                updateStudentYearSelect();
             }
         });
         
-        // Force sync every 5 seconds to ensure mobile compatibility
+        // Force sync every 10 seconds to ensure mobile compatibility (only if logged in)
         setInterval(() => {
-            console.log('Periodic sync - reloading data...');
-            loadAllData();
-        }, 5000);
+            if (currentTeacherId) {
+                console.log('Periodic sync - reloading data...');
+                loadTeacherData(currentTeacherId);
+            }
+        }, 10000);
         
         // Don't show any section initially - require login first
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'969d49e27246ea04',t:'MTc1NDMwMjQ3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'969d6783c70bd1de',t:'MTc1NDMwMzY4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
