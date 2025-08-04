@@ -57,6 +57,55 @@
 
             <!-- Settings Section -->
             <div id="settingsSection" class="hidden space-y-8">
+                <!-- Data Management Section -->
+                <div class="bg-white rounded-2xl cute-shadow p-6">
+                    <h2 class="text-2xl font-bold text-orange-600 mb-4">💾 데이터 관리</h2>
+                    
+                    <!-- Storage Usage -->
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-4">
+                        <h3 class="text-lg font-bold text-purple-600 mb-3">📊 저장 공간 사용량</h3>
+                        <div id="storageInfo" class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">전체 데이터 크기:</span>
+                                <span id="totalDataSize" class="font-bold text-purple-600">계산 중...</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">학생 수:</span>
+                                <span id="totalStudents" class="font-bold text-blue-600">0명</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">총 포인트 기록:</span>
+                                <span id="totalPoints" class="font-bold text-green-600">0개</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3 mt-3">
+                                <div id="storageBar" class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 text-center">
+                                브라우저 저장 한계: 약 5-10MB
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backup & Restore -->
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <button id="backupDataBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                            📥 데이터 백업 (다운로드)
+                        </button>
+                        <div class="relative">
+                            <input type="file" id="restoreFile" accept=".json" class="hidden">
+                            <button id="restoreDataBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                📤 데이터 복원 (업로드)
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p class="text-sm text-yellow-800">
+                            💡 <strong>팁:</strong> 정기적으로 데이터를 백업하여 포인트 기록을 안전하게 보관하세요!
+                        </p>
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-2xl cute-shadow p-6">
                     <h2 class="text-2xl font-bold text-purple-600 mb-4">⚙️ 학년도 및 수업 설정</h2>
                     <div class="grid md:grid-cols-2 gap-4 mb-4">
@@ -132,6 +181,55 @@
 
             <!-- Settings Section -->
             <div id="settingsSection" class="hidden space-y-8">
+                <!-- Data Management Section -->
+                <div class="bg-white rounded-2xl cute-shadow p-6">
+                    <h2 class="text-2xl font-bold text-orange-600 mb-4">💾 데이터 관리</h2>
+                    
+                    <!-- Storage Usage -->
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-4">
+                        <h3 class="text-lg font-bold text-purple-600 mb-3">📊 저장 공간 사용량</h3>
+                        <div id="storageInfo" class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">전체 데이터 크기:</span>
+                                <span id="totalDataSize" class="font-bold text-purple-600">계산 중...</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">학생 수:</span>
+                                <span id="totalStudents" class="font-bold text-blue-600">0명</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">총 포인트 기록:</span>
+                                <span id="totalPoints" class="font-bold text-green-600">0개</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3 mt-3">
+                                <div id="storageBar" class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 text-center">
+                                브라우저 저장 한계: 약 5-10MB
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backup & Restore -->
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <button id="backupDataBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                            📥 데이터 백업 (다운로드)
+                        </button>
+                        <div class="relative">
+                            <input type="file" id="restoreFile" accept=".json" class="hidden">
+                            <button id="restoreDataBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                📤 데이터 복원 (업로드)
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p class="text-sm text-yellow-800">
+                            💡 <strong>팁:</strong> 정기적으로 데이터를 백업하여 포인트 기록을 안전하게 보관하세요!
+                        </p>
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-2xl cute-shadow p-6">
                     <h2 class="text-2xl font-bold text-purple-600 mb-4">⚙️ 학년도 및 수업 설정</h2>
                     <div class="grid md:grid-cols-2 gap-4 mb-4">
@@ -247,6 +345,55 @@
 
             <!-- Settings Section -->
             <div id="settingsSection" class="hidden space-y-8">
+                <!-- Data Management Section -->
+                <div class="bg-white rounded-2xl cute-shadow p-6">
+                    <h2 class="text-2xl font-bold text-orange-600 mb-4">💾 데이터 관리</h2>
+                    
+                    <!-- Storage Usage -->
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-4">
+                        <h3 class="text-lg font-bold text-purple-600 mb-3">📊 저장 공간 사용량</h3>
+                        <div id="storageInfo" class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">전체 데이터 크기:</span>
+                                <span id="totalDataSize" class="font-bold text-purple-600">계산 중...</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">학생 수:</span>
+                                <span id="totalStudents" class="font-bold text-blue-600">0명</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">총 포인트 기록:</span>
+                                <span id="totalPoints" class="font-bold text-green-600">0개</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3 mt-3">
+                                <div id="storageBar" class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 text-center">
+                                브라우저 저장 한계: 약 5-10MB
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backup & Restore -->
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <button id="backupDataBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                            📥 데이터 백업 (다운로드)
+                        </button>
+                        <div class="relative">
+                            <input type="file" id="restoreFile" accept=".json" class="hidden">
+                            <button id="restoreDataBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                📤 데이터 복원 (업로드)
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p class="text-sm text-yellow-800">
+                            💡 <strong>팁:</strong> 정기적으로 데이터를 백업하여 포인트 기록을 안전하게 보관하세요!
+                        </p>
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-2xl cute-shadow p-6">
                     <h2 class="text-2xl font-bold text-purple-600 mb-4">⚙️ 학년도 및 수업 설정</h2>
                     <div class="grid md:grid-cols-2 gap-4 mb-4">
@@ -508,6 +655,55 @@
 
             <!-- Settings Section -->
             <div id="settingsSection" class="hidden space-y-8">
+                <!-- Data Management Section -->
+                <div class="bg-white rounded-2xl cute-shadow p-6">
+                    <h2 class="text-2xl font-bold text-orange-600 mb-4">💾 데이터 관리</h2>
+                    
+                    <!-- Storage Usage -->
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-4">
+                        <h3 class="text-lg font-bold text-purple-600 mb-3">📊 저장 공간 사용량</h3>
+                        <div id="storageInfo" class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">전체 데이터 크기:</span>
+                                <span id="totalDataSize" class="font-bold text-purple-600">계산 중...</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">학생 수:</span>
+                                <span id="totalStudents" class="font-bold text-blue-600">0명</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">총 포인트 기록:</span>
+                                <span id="totalPoints" class="font-bold text-green-600">0개</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3 mt-3">
+                                <div id="storageBar" class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 text-center">
+                                브라우저 저장 한계: 약 5-10MB
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backup & Restore -->
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <button id="backupDataBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                            📥 데이터 백업 (다운로드)
+                        </button>
+                        <div class="relative">
+                            <input type="file" id="restoreFile" accept=".json" class="hidden">
+                            <button id="restoreDataBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                📤 데이터 복원 (업로드)
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p class="text-sm text-yellow-800">
+                            💡 <strong>팁:</strong> 정기적으로 데이터를 백업하여 포인트 기록을 안전하게 보관하세요!
+                        </p>
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-2xl cute-shadow p-6">
                     <h2 class="text-2xl font-bold text-purple-600 mb-4">⚙️ 학년도 및 수업 설정</h2>
                     <div class="grid md:grid-cols-2 gap-4 mb-4">
@@ -706,6 +902,9 @@
         const mobileMenuToggle = document.getElementById('mobileMenuToggle');
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const backupDataBtn = document.getElementById('backupDataBtn');
+        const restoreDataBtn = document.getElementById('restoreDataBtn');
+        const restoreFile = document.getElementById('restoreFile');
 
         // Menu navigation
         function showSection(section) {
@@ -763,6 +962,7 @@
                 settingsSection.classList.remove('hidden');
                 menuSettings.classList.add('active');
                 displaySavedYearSubjects();
+                updateStorageInfo(); // Update storage info when settings are shown
             }
             currentView = section;
         }
@@ -1678,6 +1878,156 @@
             `).join('');
         }
 
+        function updateStorageInfo() {
+            // Calculate total data size
+            const allData = {
+                classData: classData,
+                yearSubjects: yearSubjects,
+                teacherAccount: teacherAccount,
+                rewardSettings: rewardSettings
+            };
+            
+            const dataString = JSON.stringify(allData);
+            const dataSizeBytes = new Blob([dataString]).size;
+            const dataSizeKB = (dataSizeBytes / 1024).toFixed(2);
+            const dataSizeMB = (dataSizeBytes / (1024 * 1024)).toFixed(3);
+            
+            // Calculate statistics
+            let totalStudents = 0;
+            let totalPointRecords = 0;
+            
+            Object.keys(classData).forEach(key => {
+                Object.keys(classData[key]).forEach(className => {
+                    totalStudents += classData[key][className].length;
+                    classData[key][className].forEach(student => {
+                        totalPointRecords += student.points.length;
+                    });
+                });
+            });
+            
+            // Update UI
+            document.getElementById('totalDataSize').textContent = 
+                dataSizeBytes < 1024 ? `${dataSizeBytes} bytes` :
+                dataSizeBytes < 1024 * 1024 ? `${dataSizeKB} KB` :
+                `${dataSizeMB} MB`;
+            
+            document.getElementById('totalStudents').textContent = `${totalStudents}명`;
+            document.getElementById('totalPoints').textContent = `${totalPointRecords}개`;
+            
+            // Update progress bar (assuming 5MB limit)
+            const maxSizeBytes = 5 * 1024 * 1024; // 5MB
+            const usagePercentage = Math.min((dataSizeBytes / maxSizeBytes) * 100, 100);
+            document.getElementById('storageBar').style.width = `${usagePercentage}%`;
+            
+            // Change color based on usage
+            const storageBar = document.getElementById('storageBar');
+            if (usagePercentage > 80) {
+                storageBar.className = 'bg-gradient-to-r from-red-400 to-red-600 h-3 rounded-full transition-all duration-500';
+            } else if (usagePercentage > 60) {
+                storageBar.className = 'bg-gradient-to-r from-yellow-400 to-orange-500 h-3 rounded-full transition-all duration-500';
+            } else {
+                storageBar.className = 'bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-500';
+            }
+            
+            // Show warning if usage is high
+            if (usagePercentage > 80) {
+                console.warn(`저장 공간 사용량이 ${usagePercentage.toFixed(1)}%입니다. 데이터 백업을 권장합니다.`);
+            }
+        }
+
+        function backupAllData() {
+            const backupData = {
+                classData: classData,
+                yearSubjects: yearSubjects,
+                teacherAccount: teacherAccount,
+                rewardSettings: rewardSettings,
+                backupDate: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const dataString = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([dataString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `minah-class-points-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('데이터 백업이 완료되었습니다! 파일이 다운로드됩니다.');
+        }
+
+        function restoreAllData(file) {
+            if (!confirm('현재 데이터를 모두 삭제하고 백업 파일로 복원하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                restoreFile.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const backupData = JSON.parse(e.target.result);
+                    
+                    // Validate backup data structure
+                    if (!backupData.classData || !backupData.yearSubjects) {
+                        throw new Error('올바르지 않은 백업 파일 형식입니다.');
+                    }
+                    
+                    // Clear existing data
+                    Object.keys(classData).forEach(key => delete classData[key]);
+                    Object.keys(yearSubjects).forEach(key => delete yearSubjects[key]);
+                    
+                    // Restore data
+                    Object.assign(classData, backupData.classData);
+                    Object.assign(yearSubjects, backupData.yearSubjects);
+                    
+                    if (backupData.teacherAccount) {
+                        Object.assign(teacherAccount, backupData.teacherAccount);
+                    }
+                    
+                    if (backupData.rewardSettings) {
+                        Object.assign(rewardSettings, backupData.rewardSettings);
+                        document.getElementById('rewardInterval').value = rewardSettings.interval;
+                        document.getElementById('maxRewardPoints').value = rewardSettings.maxPoints;
+                    }
+                    
+                    // Save to localStorage
+                    saveAllData();
+                    
+                    // Update UI
+                    updateYearSelect();
+                    updateSubjectSelect();
+                    displaySavedYearSubjects();
+                    updateStorageInfo();
+                    
+                    // Reset current selections
+                    currentYear = '';
+                    currentSubject = '';
+                    currentClass = '';
+                    yearSelect.value = '';
+                    subjectSelect.value = '';
+                    classSelect.value = '';
+                    hideAllSections();
+                    
+                    const backupDate = backupData.backupDate ? 
+                        new Date(backupData.backupDate).toLocaleDateString('ko-KR') : '알 수 없음';
+                    
+                    alert(`데이터 복원이 완료되었습니다!\n백업 날짜: ${backupDate}`);
+                    
+                } catch (error) {
+                    console.error('복원 오류:', error);
+                    alert('백업 파일을 읽는 중 오류가 발생했습니다. 올바른 백업 파일인지 확인해주세요.');
+                }
+                
+                restoreFile.value = '';
+            };
+            
+            reader.readAsText(file);
+        }
+
         function displayStudents() {
             if (!currentYear || !currentSubject || !currentClass) return;
 
@@ -2226,6 +2576,10 @@
         // Auto-save data whenever changes are made
         function autoSave() {
             saveAllData();
+            // Update storage info if settings section is visible
+            if (currentView === 'settings' && !settingsSection.classList.contains('hidden')) {
+                updateStorageInfo();
+            }
         }
 
         // Initialize existing student data with rewards if missing
@@ -2251,10 +2605,27 @@
             statisticsPanel.classList.add('hidden');
         });
 
+        // Data management event listeners
+        backupDataBtn.addEventListener('click', () => {
+            backupAllData();
+        });
+
+        restoreDataBtn.addEventListener('click', () => {
+            restoreFile.click();
+        });
+
+        restoreFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                restoreAllData(file);
+            }
+        });
+
         // Initialize
         loadAllData();
         initializeRewardsForExistingStudents();
         updateLoginUI();
+        updateStorageInfo(); // Initialize storage info display
         
         // Ensure data is synced on page focus and visibility change (when switching between devices)
         window.addEventListener('focus', () => {
@@ -2284,5 +2655,5 @@
         
         // Don't show any section initially - require login first
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9693409b51768b68',t:'MTc1NDE5NzIzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'969d49e27246ea04',t:'MTc1NDMwMjQ3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
