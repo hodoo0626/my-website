@@ -419,9 +419,9 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } 
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } 
             from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } 
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } 
             from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -553,7 +553,11 @@
                 if (loginRequired) loginRequired.classList.remove('hidden');
                 
                 // Hide all sections
-                hideAllSections();
+                const sections = ['pointsSection', 'detailsSection', 'studentsSection', 'rewardsSection', 'settingsSection'];
+                sections.forEach(sectionId => {
+                    const section = document.getElementById(sectionId);
+                    if (section) section.classList.add('hidden');
+                });
                 
                 console.log("로그아웃 상태");
             }
@@ -1136,14 +1140,26 @@
             currentClass = '';
             subjectSelect.value = '';
             classSelect.value = '';
-            hideAllSections();
+            
+            // Hide all sections
+            const sections = ['pointsSection', 'detailsSection', 'studentsSection', 'rewardsSection', 'settingsSection'];
+            sections.forEach(sectionId => {
+                const section = document.getElementById(sectionId);
+                if (section) section.classList.add('hidden');
+            });
         });
 
         subjectSelect.addEventListener('change', (e) => {
             currentSubject = e.target.value;
             currentClass = '';
             classSelect.value = '';
-            hideAllSections();
+            
+            // Hide all sections
+            const sections = ['pointsSection', 'detailsSection', 'studentsSection', 'rewardsSection', 'settingsSection'];
+            sections.forEach(sectionId => {
+                const section = document.getElementById(sectionId);
+                if (section) section.classList.add('hidden');
+            });
         });
 
         classSelect.addEventListener('change', (e) => {
@@ -1151,7 +1167,12 @@
             if (currentYear && currentSubject && currentClass) {
                 showSection(currentView);
             } else {
-                hideAllSections();
+                // Hide all sections
+                const sections = ['pointsSection', 'detailsSection', 'studentsSection', 'rewardsSection', 'settingsSection'];
+                sections.forEach(sectionId => {
+                    const section = document.getElementById(sectionId);
+                    if (section) section.classList.add('hidden');
+                });
             }
         });
 
@@ -1584,15 +1605,6 @@
             
             // Refresh display
             displayRewards();
-        }
-
-        function hideAllSections() {
-            pointsSection.classList.add('hidden');
-            detailsSection.classList.add('hidden');
-            studentsSection.classList.add('hidden');
-            rewardsSection.classList.add('hidden');
-            settingsSection.classList.add('hidden');
-            teacherControls.classList.add('hidden');
         }
 
         function displaySavedYearSubjects() {
@@ -2142,32 +2154,13 @@
                 yearSelect.value = '';
                 subjectSelect.value = '';
                 classSelect.value = '';
-                hideAllSections();
+                
+                // Hide all sections
+                const sections = ['pointsSection', 'detailsSection', 'studentsSection', 'rewardsSection', 'settingsSection'];
+                sections.forEach(sectionId => {
+                    const section = document.getElementById(sectionId);
+                    if (section) section.classList.add('hidden');
+                });
             }
             
-            alert('수업이 삭제되었습니다.');
-            
-            // Auto-save data
-            autoSave();
-        }
-
-        function updateStudentYearSelect() {
-            studentYearSelect.innerHTML = '<option value="">학년도 선택</option>';
-            Object.keys(yearSubjects).forEach(year => {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                studentYearSelect.appendChild(option);
-            });
-        }
-
-        function updateStudentSubjectSelect() {
-            const selectedYear = studentYearSelect.value;
-            
-            studentSubjectSelect.innerHTML = '<option value="">수업 선택</option>';
-            if (selectedYear && yearSubjects[selectedYear]) {
-                yearSubjects[selectedYear].forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject;
-                    option.
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ff9462d5b70dbb',t:'MTc1NTMzMzEzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+            alert('수업이 삭제되었습<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ffa45df5fdd1e5',t:'MTc1NTMzMzc4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
