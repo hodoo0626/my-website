@@ -446,8 +446,13 @@
             });
             auth = getAuth(app);
             provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
             isFirebaseAvailable = true;
             console.log("✅ Firebase 초기화 성공");
+        getRedirectResult(auth)
+         .then(res => { if (res?.user) console.log('✅ Redirect 로그인 성공:', res.user.email); })
+         .catch(e => console.error('redirect error:', e.code, e.message));
+
         } catch (error) {
             console.log("⚠️ Firebase 데모 모드 - 로컬 저장소 사용");
             isFirebaseAvailable = false;
@@ -522,6 +527,50 @@
                 alert("데모 모드에서는 Google 로그인을 사용할 수 없습니다.\n실제 Firebase 설정이 필요합니다.");
             }
         };
+
+       window.loginWithGoogle = () => {
+         if (typeof isFirebaseAvailable === 'undefined' || !isFirebaseAvailable) {
+           alert("데모 모드에서는 Google 로그인을 사용할 수 없습니다.\n실제 Firebase 설정이 필요합니다.");
+           return;
+          }
+          signInWithRedirect(auth, provider);
+        };
+
+// ==== 모든 "Google 로그인" 버튼을 한 번에 바인딩 ====
+// (상단 id=teacherLoginBtn + 카드 안 'Google 로그인' 텍스트 버튼)
+function wireGoogleLoginButtons() {
+  const topBtn = document.getElementById('teacherLoginBtn'); // 상단 보라색
+  const textBtns = Array.from(document.querySelectorAll('button'))
+    .filter(b => /google\s*로그인/i.test((b.textContent || '').trim())); // 카드 안 버튼 등
+
+  // 중복 제거
+  const btns = Array.from(new Set([topBtn, ...textBtns].filter(Boolean)));
+
+  let wired = 0;
+  btns.forEach((btn) => {
+    if (btn.dataset.gloginBound === '1') return;      // 중복 바인딩 방지
+    if (btn.tagName === 'BUTTON') btn.type = 'button'; // 폼 submit 방지
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.loginWithGoogle(); // 위에서 만든 함수 호출
+    });
+
+    btn.dataset.gloginBound = '1';
+    wired++;
+  });
+
+  console.log('[LOGIN] wired buttons =', wired); // 보통 2가 찍히면 정상
+}
+
+// DOM 준비 후 바인딩 + 늦게 렌더되는 요소 대비
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', wireGoogleLoginButtons);
+} else {
+  wireGoogleLoginButtons();
+}
+setTimeout(wireGoogleLoginButtons, 300);
 
         // Logout function
         window.logoutUser = () => {
