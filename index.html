@@ -422,7 +422,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } 
             from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, connectFirestoreEmulator } 
+        import { initializeFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp }
             from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
         // Firebase 설정 - 더 안정적인 설정으로 변경
@@ -442,16 +442,19 @@
         try {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
-            db = getFirestore(app);
-            
+            // Firestore를 롱폴링 모드로 초기화
+             db = initializeFirestore(app, {
+               experimentalAutoDetectLongPolling: true,
+               useFetchStreams: false
+             });
             // 연결 테스트
             console.log("🔥 Firebase 초기화 성공");
-            document.getElementById('firebaseStatus').innerHTML = '<span class="text-sm text-green-600">🔥 Firebase 연결 완료</span>';
+            document.getElementById('firebaseStatus').innerHTML = '<span class="text-sm text-green-600">✅ Firebase 연결됨</span>';
             firebaseInitialized = true;
             
         } catch (error) {
             console.error("❌ Firebase 초기화 실패:", error);
-            document.getElementById('firebaseStatus').innerHTML = '<span class="text-sm text-red-600">⚠️ Firebase 연결 실패 - 로컬 모드로 동작</span>';
+            document.getElementById('firebaseStatus').innerHTML =  '<span class="text-sm text-red-600">⚠️ Firebase 오류</span>';
             firebaseInitialized = false;
         }
 
