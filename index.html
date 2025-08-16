@@ -424,33 +424,41 @@
         import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, getDoc, initializeFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-        // Firebase configuration
+        // Firebase configuration - Demo mode with fallback to localStorage
         const firebaseConfig = {
-            apiKey: "AIzaSyBqJjxJ9x8x8x8x8x8x8x8x8x8x8x8x8x8",
-            authDomain: "minah-teacher-points.firebaseapp.com",
-            projectId: "minah-teacher-points",
-            storageBucket: "minah-teacher-points.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef123456789012345678"
+            apiKey: "AIzaSyDemoKey-Replace-With-Your-Real-Firebase-Key",
+            authDomain: "demo-project.firebaseapp.com",
+            projectId: "demo-project",
+            storageBucket: "demo-project.appspot.com",
+            messagingSenderId: "000000000000",
+            appId: "1:000000000000:web:demo000000000000000000"
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
+        // Initialize Firebase with error handling for demo mode
+        let app, db, auth, provider;
+        let isFirebaseAvailable = false;
         
-        // Initialize Firestore with experimental settings
-        const db = initializeFirestore(app, { 
-            experimentalForceLongPolling: true, 
-            useFetchStreams: false 
-        });
-        
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+        try {
+            app = initializeApp(firebaseConfig);
+            db = initializeFirestore(app, { 
+                experimentalForceLongPolling: true, 
+                useFetchStreams: false 
+            });
+            auth = getAuth(app);
+            provider = new GoogleAuthProvider();
+            isFirebaseAvailable = true;
+            console.log("✅ Firebase 초기화 성공");
+        } catch (error) {
+            console.log("⚠️ Firebase 데모 모드 - 로컬 저장소 사용");
+            isFirebaseAvailable = false;
+        }
 
         // Global variables
         window.currentUser = null;
-        window.firebaseInitialized = true;
+        window.firebaseInitialized = isFirebaseAvailable;
         window.db = db;
         window.auth = auth;
+        window.isFirebaseAvailable = isFirebaseAvailable;
 
         // DOM elements
         const loginBtn = document.getElementById('teacherLoginBtn');
@@ -460,76 +468,101 @@
         const firebaseStatus = document.getElementById('firebaseStatus');
 
         // Update Firebase status
-        firebaseStatus.innerHTML = '<span class="text-sm text-green-600">🔥 Firebase 연결됨</span>';
+        if (isFirebaseAvailable) {
+            firebaseStatus.innerHTML = '<span class="text-sm text-green-600">🔥 Firebase 연결됨</span>';
+        } else {
+            firebaseStatus.innerHTML = '<span class="text-sm text-orange-600">💾 데모 모드 (로컬 저장소)</span>';
+        }
 
-        // Check for redirect result on page load
-        getRedirectResult(auth)
-            .then((result) => {
-                if (result) {
-                    console.log("✅ Google 로그인 성공:", result.user.displayName);
-                    window.currentUser = result.user;
+        // Check for redirect result on page load (only if Firebase is available)
+        if (isFirebaseAvailable) {
+            getRedirectResult(auth)
+                .then((result) => {
+                    if (result) {
+                        console.log("✅ Google 로그인 성공:", result.user.displayName);
+                        window.currentUser = result.user;
+                        updateUI();
+                        loadUserDataFromFirestore();
+                    }
+                })
+                .catch((error) => {
+                    console.error("❌ 로그인 오류:", error);
+                    firebaseStatus.innerHTML = '<span class="text-sm text-red-600">🔥 로그인 오류</span>';
+                });
+
+            // Auth state observer
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    window.currentUser = user;
                     updateUI();
                     loadUserDataFromFirestore();
+                } else {
+                    window.currentUser = null;
+                    updateUI();
                 }
-            })
-            .catch((error) => {
-                console.error("❌ 로그인 오류:", error);
-                firebaseStatus.innerHTML = '<span class="text-sm text-red-600">🔥 로그인 오류</span>';
             });
-
-        // Auth state observer
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                window.currentUser = user;
+        } else {
+            // Demo mode - simulate logged in user
+            setTimeout(() => {
+                window.currentUser = { 
+                    displayName: "데모 선생님", 
+                    email: "demo@teacher.com",
+                    uid: "demo-user-123"
+                };
                 updateUI();
-                loadUserDataFromFirestore();
-            } else {
-                window.currentUser = null;
-                updateUI();
-            }
-        });
+                loadLocalData();
+            }, 1000);
+        }
 
         // Login function
         window.loginWithGoogle = () => {
-            signInWithRedirect(auth, provider);
+            if (isFirebaseAvailable) {
+                signInWithRedirect(auth, provider);
+            } else {
+                alert("데모 모드에서는 Google 로그인을 사용할 수 없습니다.\n실제 Firebase 설정이 필요합니다.");
+            }
         };
 
         // Logout function
         window.logoutUser = () => {
-            signOut(auth).then(() => {
-                console.log("✅ 로그아웃 완료");
+            if (isFirebaseAvailable) {
+                signOut(auth).then(() => {
+                    console.log("✅ 로그아웃 완료");
+                    window.currentUser = null;
+                    updateUI();
+                }).catch((error) => {
+                    console.error("❌ 로그아웃 오류:", error);
+                });
+            } else {
+                // Demo mode logout
                 window.currentUser = null;
                 updateUI();
-            }).catch((error) => {
-                console.error("❌ 로그아웃 오류:", error);
-            });
+                console.log("✅ 데모 모드 로그아웃");
+            }
         };
 
         // Save data to Firestore
         window.saveDataToFirestore = async (data) => {
             if (!window.currentUser) return;
             
-            try {
-                const userDocRef = doc(db, 'teachers', window.currentUser.uid);
-                await setDoc(userDocRef, {
-                    ...data,
-                    lastUpdated: new Date().toISOString(),
-                    userEmail: window.currentUser.email,
-                    userName: window.currentUser.displayName
-                });
-                console.log("✅ Firestore 저장 완료");
-            } catch (error) {
-                console.error("❌ Firestore 저장 실패:", error);
-                // Fallback to localStorage
+            if (isFirebaseAvailable) {
                 try {
-                    localStorage.setItem('minahTeacherData', JSON.stringify({
+                    const userDocRef = doc(db, 'teachers', window.currentUser.uid);
+                    await setDoc(userDocRef, {
                         ...data,
-                        lastSaved: new Date().toISOString()
-                    }));
-                    console.log("✅ 로컬 저장소 백업 완료");
-                } catch (localError) {
-                    console.error("❌ 로컬 저장소 백업 실패:", localError);
+                        lastUpdated: new Date().toISOString(),
+                        userEmail: window.currentUser.email,
+                        userName: window.currentUser.displayName
+                    });
+                    console.log("✅ Firestore 저장 완료");
+                } catch (error) {
+                    console.error("❌ Firestore 저장 실패:", error);
+                    // Fallback to localStorage
+                    saveToLocalStorage(data);
                 }
+            } else {
+                // Demo mode - save to localStorage
+                saveToLocalStorage(data);
             }
         };
 
@@ -537,32 +570,48 @@
         window.loadUserDataFromFirestore = async () => {
             if (!window.currentUser) return;
             
-            try {
-                const userDocRef = doc(db, 'teachers', window.currentUser.uid);
-                const docSnap = await getDoc(userDocRef);
-                
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (data.classData) Object.assign(classData, data.classData);
-                    if (data.yearSubjects) Object.assign(yearSubjects, data.yearSubjects);
-                    if (data.rewardSettings) Object.assign(rewardSettings, data.rewardSettings);
+            if (isFirebaseAvailable) {
+                try {
+                    const userDocRef = doc(db, 'teachers', window.currentUser.uid);
+                    const docSnap = await getDoc(userDocRef);
                     
-                    updateYearSelect();
-                    updateSubjectSelect();
-                    updateStorageInfo();
-                    
-                    console.log("✅ Firestore에서 데이터 로드 완료");
-                } else {
-                    console.log("📝 새 사용자 - 기본 데이터 생성");
-                    // Initialize with default data for new users
-                    initializeDefaultData();
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data.classData) Object.assign(classData, data.classData);
+                        if (data.yearSubjects) Object.assign(yearSubjects, data.yearSubjects);
+                        if (data.rewardSettings) Object.assign(rewardSettings, data.rewardSettings);
+                        
+                        updateYearSelect();
+                        updateSubjectSelect();
+                        updateStorageInfo();
+                        
+                        console.log("✅ Firestore에서 데이터 로드 완료");
+                    } else {
+                        console.log("📝 새 사용자 - 기본 데이터 생성");
+                        initializeDefaultData();
+                    }
+                } catch (error) {
+                    console.error("❌ Firestore 로드 실패:", error);
+                    loadLocalData();
                 }
-            } catch (error) {
-                console.error("❌ Firestore 로드 실패:", error);
-                // Try to load from localStorage as fallback
+            } else {
+                // Demo mode - load from localStorage
                 loadLocalData();
             }
         };
+
+        // Helper function to save to localStorage
+        function saveToLocalStorage(data) {
+            try {
+                localStorage.setItem('minahTeacherData', JSON.stringify({
+                    ...data,
+                    lastSaved: new Date().toISOString()
+                }));
+                console.log("✅ 로컬 저장소에 데이터 저장 완료");
+            } catch (localError) {
+                console.error("❌ 로컬 저장소 저장 실패:", localError);
+            }
+        }
 
         // Update UI based on auth state
         function updateUI() {
@@ -757,7 +806,7 @@
 
         // Auto-save function
         function autoSave() {
-            if (window.currentUser && window.saveDataToFirestore && window.firebaseInitialized) {
+            if (window.currentUser && window.saveDataToFirestore) {
                 const dataToSave = {
                     classData: classData,
                     yearSubjects: yearSubjects,
@@ -2254,10 +2303,15 @@
         }
 
         // Update Firebase sync status
-        document.getElementById('firebaseSyncStatus').innerHTML = '✅ 연결됨';
-        document.getElementById('lastFirebaseSync').innerHTML = '실시간';
+        if (window.isFirebaseAvailable) {
+            document.getElementById('firebaseSyncStatus').innerHTML = '✅ 연결됨';
+            document.getElementById('lastFirebaseSync').innerHTML = '실시간';
+        } else {
+            document.getElementById('firebaseSyncStatus').innerHTML = '💾 데모 모드';
+            document.getElementById('lastFirebaseSync').innerHTML = '로컬 저장소';
+        }
 
         console.log("✅ 포인트 시스템이 Firebase 모드로 준비되었습니다!");
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9701c2bfa66dea01',t:'MTc1NTM1NjAwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9701c7db511eea01',t:'MTc1NTM1NjIxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
