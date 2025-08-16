@@ -449,62 +449,48 @@
         window.firebaseDb = db;
         window.currentUser = null;
 
-        // Check for redirect result on page load
-        getRedirectResult(auth).then((result) => {
-            if (result) {
-                console.log('리다이렉트 로그인 성공:', result.user.email);
-            }
-        }).catch((error) => {
-            console.error('리다이렉트 로그인 오류:', error);
-        });
-
-        // Login button event with improved error handling
+        // Login button event - 빠른 팝업 로그인만 사용
         const loginBtn = document.getElementById('teacherLoginBtn');
         if (loginBtn) {
             loginBtn.onclick = async () => {
                 try {
                     console.log('Google 로그인 시도...');
                     
-                    // 사용자 상호작용 확인
-                    if (!document.hasFocus()) {
-                        alert('페이지에 포커스를 맞춘 후 다시 시도해주세요.');
-                        return;
-                    }
+                    // 로딩 상태 표시
+                    loginBtn.disabled = true;
+                    loginBtn.innerHTML = '🔄 <span class="hidden md:inline">로그인 중...</span>';
                     
-                    // 팝업 차단 감지를 위한 설정
+                    // 팝업 설정 최적화
                     provider.setCustomParameters({
-                        prompt: 'select_account'
+                        prompt: 'select_account',
+                        hd: '' // 모든 도메인 허용
                     });
                     
-                    // 팝업 방식 시도 (타임아웃 설정)
-                    const popupPromise = signInWithPopup(auth, provider);
-                    const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('POPUP_TIMEOUT')), 3000)
-                    );
-                    
-                    const result = await Promise.race([popupPromise, timeoutPromise]);
-                    console.log('팝업 로그인 성공:', result.user.email);
+                    // 팝업으로만 로그인 (리다이렉트 제거)
+                    const result = await signInWithPopup(auth, provider);
+                    console.log('로그인 성공:', result.user.email);
                     
                 } catch (error) {
-                    console.error('팝업 로그인 실패:', error.code, error.message);
+                    console.error('로그인 실패:', error.code, error.message);
                     
-                    // 팝업 차단 또는 타임아웃 시 리다이렉트로 전환
-                    if (error.code === 'auth/popup-blocked' || 
-                        error.code === 'auth/popup-closed-by-user' ||
-                        error.code === 'auth/cancelled-popup-request' ||
-                        error.message === 'POPUP_TIMEOUT') {
-                        
-                        console.log('리다이렉트 방식으로 전환...');
-                        try {
-                            await signInWithRedirect(auth, provider);
-                        } catch (redirectError) {
-                            console.error('리다이렉트 로그인 실패:', redirectError);
-                            alert('로그인에 실패했습니다. 페이지를 새로고침 후 다시 시도해주세요.');
-                        }
-                    } else {
-                        console.error('예상치 못한 로그인 오류:', error);
-                        alert('로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                    // 구체적인 오류 메시지 제공
+                    let errorMessage = '로그인에 실패했습니다.';
+                    
+                    if (error.code === 'auth/popup-blocked') {
+                        errorMessage = '팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해주세요.';
+                    } else if (error.code === 'auth/popup-closed-by-user') {
+                        errorMessage = '로그인이 취소되었습니다.';
+                    } else if (error.code === 'auth/cancelled-popup-request') {
+                        errorMessage = '다른 로그인 요청이 진행 중입니다.';
+                    } else if (error.code === 'auth/network-request-failed') {
+                        errorMessage = '네트워크 연결을 확인해주세요.';
                     }
+                    
+                    alert(errorMessage);
+                } finally {
+                    // 로딩 상태 해제
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '👩‍🏫 <span class="hidden md:inline">Google 로그인</span>';
                 }
             };
         }
@@ -2183,4 +2169,5 @@
                 yearSubjects[selectedYear].forEach(subject => {
                     const option = document.createElement('option');
                     option.value = subject;
-                    option.<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ff867c52c9308b',t:'MTc1NTMzMjU2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+                    option.
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ff9462d5b70dbb',t:'MTc1NTMzMzEzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
