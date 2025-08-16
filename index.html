@@ -421,7 +421,7 @@
     <script type="module">
         // Firebase imports
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
-        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js';
+        import {getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
         import { initializeFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
         // Firebase configuration - Demo mode with fallback to localStorage
@@ -520,57 +520,40 @@
         }
 
         // Login function
-        window.loginWithGoogle = () => {
-            if (isFirebaseAvailable) {
-                signInWithRedirect(auth, provider);
-            } else {
-                alert("데모 모드에서는 Google 로그인을 사용할 수 없습니다.\n실제 Firebase 설정이 필요합니다.");
-            }
-        };
+       window.loginWithGoogle = async () => {
+  if (typeof isFirebaseAvailable === 'undefined' || !isFirebaseAvailable) {
+    alert("데모 모드에서는 Google 로그인을 사용할 수 없습니다.\n실제 Firebase 설정이 필요합니다.");
+    return;
+  }
+  console.log('[LOGIN] start @', location.origin);
 
-       window.loginWithGoogle = () => {
-         if (typeof isFirebaseAvailable === 'undefined' || !isFirebaseAvailable) {
-           alert("데모 모드에서는 Google 로그인을 사용할 수 없습니다.\n실제 Firebase 설정이 필요합니다.");
-           return;
-          }
-          signInWithRedirect(auth, provider);
-        };
+  try {
+    await signInWithPopup(auth, provider);          // 1) 팝업 시도
+    console.log('[LOGIN] popup success');
+  } catch (e) {
+    console.warn('[LOGIN] popup failed → redirect', e.code, e.message);
+    try {
+      await signInWithRedirect(auth, provider);     // 2) 팝업 막히면 리다이렉트
+    } catch (e2) {
+      console.error('[LOGIN] redirect error:', e2.code, e2.message);
+      alert('로그인 오류: ' + e2.code + '\n' + e2.message);
+    }
+  }
+};
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('#teacherLoginBtn, button');
+  if (!t) return;
 
-// ==== 모든 "Google 로그인" 버튼을 한 번에 바인딩 ====
-// (상단 id=teacherLoginBtn + 카드 안 'Google 로그인' 텍스트 버튼)
-function wireGoogleLoginButtons() {
-  const topBtn = document.getElementById('teacherLoginBtn'); // 상단 보라색
-  const textBtns = Array.from(document.querySelectorAll('button'))
-    .filter(b => /google\s*로그인/i.test((b.textContent || '').trim())); // 카드 안 버튼 등
+  const txt = (t.textContent || '').toLowerCase().replace(/\s+/g, ' ');
+  const looksLikeGoogle =
+    /(google\s*로그인|구글\s*로그인|sign\s*in\s*with\s*google|continue\s*with\s*google)/i.test(txt);
 
-  // 중복 제거
-  const btns = Array.from(new Set([topBtn, ...textBtns].filter(Boolean)));
-
-  let wired = 0;
-  btns.forEach((btn) => {
-    if (btn.dataset.gloginBound === '1') return;      // 중복 바인딩 방지
-    if (btn.tagName === 'BUTTON') btn.type = 'button'; // 폼 submit 방지
-
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      window.loginWithGoogle(); // 위에서 만든 함수 호출
-    });
-
-    btn.dataset.gloginBound = '1';
-    wired++;
-  });
-
-  console.log('[LOGIN] wired buttons =', wired); // 보통 2가 찍히면 정상
-}
-
-// DOM 준비 후 바인딩 + 늦게 렌더되는 요소 대비
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', wireGoogleLoginButtons);
-} else {
-  wireGoogleLoginButtons();
-}
-setTimeout(wireGoogleLoginButtons, 300);
+  if (t.id === 'teacherLoginBtn' || looksLikeGoogle) {
+    e.preventDefault(); e.stopPropagation();
+    console.log('[LOGIN] button click:', t.id || txt);
+    window.loginWithGoogle();
+  }
+});
 
         // Logout function
         window.logoutUser = () => {
