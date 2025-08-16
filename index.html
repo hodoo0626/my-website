@@ -420,8 +420,7 @@
     <script type="module">
         // Firebase 설정을 더 안정적으로 변경
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } 
-            from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "…/firebase-auth.js";
         import { initializeFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp }
             from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
@@ -457,6 +456,21 @@
             document.getElementById('firebaseStatus').innerHTML =  '<span class="text-sm text-red-600">⚠️ Firebase 오류</span>';
             firebaseInitialized = false;
         }
+      if (firebaseInitialized) {
+        getRedirectResult(auth)
+          .then(res => {
+            if (res && res.user) {
+              console.log('✅ Redirect 로그인 성공:', res.user.email);
+            }
+          })
+          .catch(e => {
+            console.error('redirect error:', e.code, e.message);
+          })
+          .finally(() => {
+            const btn = document.getElementById('teacherLoginBtn');
+            if (btn) { btn.disabled = false; btn.innerHTML = '교사 계정 로그인'; }
+          });
+         }
 
         // Global variables for Firebase integration
         window.firebaseAuth = auth;
@@ -481,8 +495,8 @@
                             prompt: 'select_account'
                         });
                         
-                        const result = await signInWithPopup(auth, provider);
-                        console.log('로그인 성공:', result.user.email);
+                        return signInWithRedirect(auth, provider);
+                        };
                         
                     } catch (error) {
                         console.error('로그인 실패:', error.code, error.message);
