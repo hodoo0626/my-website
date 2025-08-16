@@ -443,7 +443,7 @@
             auth = getAuth(app);
             // Firestore를 롱폴링 모드로 초기화
              db = initializeFirestore(app, {
-               experimentalAutoDetectLongPolling: true,
+               experimentalForceLongPolling: true,
                useFetchStreams: false
              });
             // 연결 테스트
