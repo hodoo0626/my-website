@@ -14,55 +14,61 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         
-        // Firebase 설정 (데모용 - 실제 연결 없이 작동)
+        // Firebase 설정
         let firebaseInitialized = false;
+        let auth, db, provider;
         
         try {
-            // 실제 Firebase 설정이 있다면 여기에 입력
+            // 실제 Firebase 설정 - 여기에 본인의 Firebase 프로젝트 설정을 입력하세요
             const firebaseConfig = {
-                apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
-                authDomain: "minah-teacher-s-class-points.firebaseapp.com",
-                projectId: "minah-teacher-s-class-points",
-                storageBucket: "minah-teacher-s-class-points.firebasestorage.app",
-                messagingSenderId: "50388651847",
-                appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
+                // 아래 주석을 해제하고 실제 Firebase 설정값을 입력하세요
+                    apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
+                    authDomain: "minah-teacher-s-class-points.firebaseapp.com",
+                    projectId: "minah-teacher-s-class-points",
+                    storageBucket: "minah-teacher-s-class-points.firebasestorage.app",
+                    messagingSenderId: "50388651847",
+                    appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
             };
             
-            // Firebase 설정이 완전하지 않으면 로컬 모드로 실행
-            if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes('실제')) {
-                throw new Error('Firebase 설정이 없습니다 - 로컬 모드로 실행');
+            // Firebase 설정이 있는지 확인
+            if (firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('your-')) {
+                // Firebase 초기화
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                provider = new GoogleAuthProvider();
+                firebaseInitialized = true;
+                console.log('✅ Firebase 초기화 성공');
+            } else {
+                console.log('⚠️ Firebase 설정이 없어 로컬 모드로 실행합니다');
+                firebaseInitialized = false;
             }
-            
-            // Firebase 초기화
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const db = getFirestore(app);
-            const provider = new GoogleAuthProvider();
-            firebaseInitialized = true;
         } catch (error) {
-            console.log('Firebase 없이 로컬 모드로 실행합니다');
+            console.error('❌ Firebase 초기화 실패:', error);
             firebaseInitialized = false;
         }
         
-        // 전역 변수로 설정
-        window.auth = auth;
-        window.db = db;
-        window.provider = provider;
-        window.signInWithPopup = signInWithPopup;
-        window.signOut = signOut;
-        window.onAuthStateChanged = onAuthStateChanged;
-        window.doc = doc;
-        window.setDoc = setDoc;
-        window.getDoc = getDoc;
-        window.collection = collection;
-        window.query = query;
-        window.where = where;
-        window.orderBy = orderBy;
-        window.onSnapshot = onSnapshot;
-        window.addDoc = addDoc;
-        window.updateDoc = updateDoc;
-        window.deleteDoc = deleteDoc;
-        window.getDocs = getDocs;
+        // 전역 변수로 설정 (Firebase가 초기화된 경우에만)
+        if (firebaseInitialized) {
+            window.auth = auth;
+            window.db = db;
+            window.provider = provider;
+            window.signInWithPopup = signInWithPopup;
+            window.signOut = signOut;
+            window.onAuthStateChanged = onAuthStateChanged;
+            window.doc = doc;
+            window.setDoc = setDoc;
+            window.getDoc = getDoc;
+            window.collection = collection;
+            window.query = query;
+            window.where = where;
+            window.orderBy = orderBy;
+            window.onSnapshot = onSnapshot;
+            window.addDoc = addDoc;
+            window.updateDoc = updateDoc;
+            window.deleteDoc = deleteDoc;
+            window.getDocs = getDocs;
+        }
     </script>
     
     <style>
@@ -925,12 +931,13 @@
             </svg>`
         ];
 
-        // Firebase 인증 상태 변화 감지
-        setTimeout(() => {
+        // Firebase 인증 상태 변화 감지 및 앱 시작
+        function startApp() {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            
             if (firebaseInitialized && window.onAuthStateChanged && window.auth) {
+                // Firebase 모드
                 window.onAuthStateChanged(window.auth, (user) => {
-                    document.getElementById('loadingScreen').classList.add('hidden');
-                    
                     if (user) {
                         currentUser = user;
                         checkTeacherVerification(user);
@@ -939,13 +946,28 @@
                         showMainSelection();
                     }
                 });
+                showNotification('🔥 Firebase 연결 성공! 실시간 동기화가 활성화되었습니다', 'success');
             } else {
-                // Firebase 연결 실패시 로컬 모드로 전환
-                document.getElementById('loadingScreen').classList.add('hidden');
+                // 로컬 모드
                 showMainSelection();
-                showNotification('🌟 로컬 모드로 실행됩니다 (Firebase 없이도 모든 기능 사용 가능)', 'info');
+                showNotification('💻 로컬 모드로 실행됩니다 (모든 기능 사용 가능)', 'info');
             }
-        }, 1500);
+        }
+
+        // 앱 시작 (최대 2초 후 강제 시작)
+        setTimeout(startApp, 1000);
+        
+        // 강제 시작 버튼 (로딩이 너무 오래 걸릴 경우)
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (!loadingScreen.classList.contains('hidden')) {
+                const forceStartBtn = document.createElement('button');
+                forceStartBtn.innerHTML = '🚀 바로 시작하기';
+                forceStartBtn.className = 'mt-4 bg-white text-purple-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors';
+                forceStartBtn.onclick = startApp;
+                loadingScreen.querySelector('.text-center').appendChild(forceStartBtn);
+            }
+        }, 3000);
 
         // 메인 선택 화면 표시
         function showMainSelection() {
@@ -1674,5 +1696,5 @@
             console.log('🌟 Minah Teacher\'s Class Points 시작!');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9708c87792633537',t:'MTc1NTQyOTYzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9708d467b37cc093',t:'MTc1NTQzMDEyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
