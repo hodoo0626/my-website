@@ -7,6 +7,50 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌟</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        // Firebase 설정 (실제 사용시 본인의 Firebase 프로젝트 설정으로 교체)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
+            authDomain: "minah-teacher-s-class-points.firebaseapp.com",
+            projectId: "minah-teacher-s-class-points",
+            storageBucket: "minah-teacher-s-class-points.firebasestorage.app",
+            messagingSenderId: "50388651847",
+            appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
+        };
+        
+        // Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+        
+        // 전역 변수로 설정
+        window.auth = auth;
+        window.db = db;
+        window.provider = provider;
+        window.signInWithPopup = signInWithPopup;
+        window.signOut = signOut;
+        window.onAuthStateChanged = onAuthStateChanged;
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.getDoc = getDoc;
+        window.collection = collection;
+        window.query = query;
+        window.where = where;
+        window.orderBy = orderBy;
+        window.onSnapshot = onSnapshot;
+        window.addDoc = addDoc;
+        window.updateDoc = updateDoc;
+        window.deleteDoc = deleteDoc;
+        window.getDocs = getDocs;
+    </script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap');
         body { font-family: 'Nunito', sans-serif; }
@@ -16,39 +60,169 @@
         .menu-item { transition: all 0.3s ease; }
         .menu-item:hover { background-color: rgba(238, 242, 255, 0.8) !important; transform: translateX(4px); }
         .menu-item.active { background-color: rgba(224, 231, 255, 0.9) !important; }
+        .login-container { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+        .shape:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .shape:nth-child(2) { top: 20%; right: 10%; animation-delay: 2s; }
+        .shape:nth-child(3) { bottom: 10%; left: 20%; animation-delay: 4s; }
+        .shape:nth-child(4) { bottom: 20%; right: 20%; animation-delay: 1s; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        /* 실시간 알림 스타일 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        /* 포인트 애니메이션 */
+        @keyframes pointPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .point-animation {
+            animation: pointPulse 0.6s ease-in-out;
+        }
+        
+        /* 랭킹 애니메이션 */
+        @keyframes rankingSlide {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .ranking-item {
+            animation: rankingSlide 0.5s ease-out;
+        }
+        
+        /* 로딩 스피너 */
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 다크모드 지원 */
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .dark-mode .bg-white {
+            background-color: #2d2d2d !important;
+            color: #ffffff;
+        }
+        
+        /* 반응형 차트 */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100 min-h-screen">
-    <!-- Header -->
-    <div class="bg-white cute-shadow mb-8">
-        <div class="container mx-auto px-4 md:px-6 py-4">
-            <div class="flex justify-between items-center">
-                <h1 class="text-lg md:text-4xl font-black text-indigo-700 ml-12 md:ml-0" style="font-family: 'Nunito', sans-serif; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">🌟 Minah Teacher's Class Points</h1>
-                <div class="flex items-center space-x-2 md:space-x-4">
-                    <div id="whoami" class="text-sm text-gray-600 hidden md:block"></div>
-                    <button id="studentViewBtn" class="bg-green-500 hover:bg-green-600 text-white px-3 md:px-6 py-2 rounded-full font-semibold transition-colors text-xs md:text-base">
-                        👨‍🎓 <span class="hidden md:inline">학생 조회</span>
-                    </button>
-                    <button id="teacherLoginBtn" type="button" class="bg-purple-500 hover:bg-purple-600 text-white px-3 md:px-6 py-2 rounded-full font-semibold transition-colors text-xs md:text-base">
-                        👩‍🏫 <span class="hidden md:inline">Google 로그인</span>
-                    </button>
-                    <button id="teacherLogoutBtn" type="button" style="display:none" class="bg-red-400 hover:bg-red-500 text-white px-3 md:px-6 py-2 rounded-full font-semibold transition-colors hidden text-xs md:text-base">
-                        로그아웃
-                    </button>
-                </div>
-            </div>
+<body>
+    <!-- 실시간 알림 컨테이너 -->
+    <div id="notificationContainer"></div>
+    
+    <!-- 로딩 화면 -->
+    <div id="loadingScreen" class="fixed inset-0 bg-purple-600 flex items-center justify-center z-50">
+        <div class="text-center text-white">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <h2 class="text-2xl font-bold">🌟 Minah Teacher's Class</h2>
+            <p class="text-purple-200">Firebase 연결 중...</p>
+        </div>
+    </div>
 
-            <!-- Firebase 연결 상태 표시 -->
-            <div id="firebaseStatus" class="mt-2 text-center">
-                <span class="text-sm text-gray-500">🔥 Firebase 연결 중...</span>
+    <!-- 로그인 화면 -->
+    <div id="loginScreen" class="login-container flex items-center justify-center relative hidden">
+        <div class="floating-shapes">
+            <div class="shape w-20 h-20 bg-white rounded-full"></div>
+            <div class="shape w-16 h-16 bg-pink-300 rounded-full"></div>
+            <div class="shape w-24 h-24 bg-yellow-300 rounded-full"></div>
+            <div class="shape w-12 h-12 bg-blue-300 rounded-full"></div>
+        </div>
+        
+        <div class="bg-white rounded-3xl cute-shadow p-8 max-w-md w-full mx-4 relative z-10">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">🌟</div>
+                <h1 class="text-3xl font-bold text-purple-600 mb-2">Minah Teacher's</h1>
+                <h2 class="text-xl text-gray-600">English Class Points</h2>
+                <p class="text-sm text-gray-500 mt-2">구글 계정으로 안전하게 로그인하세요</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button id="googleLoginBtn" class="w-full bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 mr-3" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    구글 계정으로 로그인
+                </button>
+                
+                <div class="text-center">
+                    <p class="text-xs text-gray-500">
+                        🔒 안전한 구글 인증을 통해 데이터가 보호됩니다
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Student View Modal -->
-    <div id="studentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <!-- 역할 선택 화면 -->
+    <div id="roleSelectionScreen" class="login-container flex items-center justify-center relative hidden">
+        <div class="bg-white rounded-3xl cute-shadow p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">👋</div>
+                <h2 class="text-2xl font-bold text-purple-600 mb-2">환영합니다!</h2>
+                <p id="userEmail" class="text-gray-600 mb-4"></p>
+                <p class="text-sm text-gray-500">역할을 선택해주세요</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button id="selectTeacherBtn" class="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    👩‍🏫 선생님으로 입장
+                </button>
+                <button id="selectStudentBtn" class="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    👨‍🎓 학생으로 입장
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 학생 정보 입력 모달 -->
+    <div id="studentInfoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-2xl p-8 cute-shadow max-w-md w-full mx-4">
-            <h2 class="text-2xl font-bold text-green-600 mb-6 text-center">👨‍🎓 학생 포인트 조회</h2>
+            <h2 class="text-2xl font-bold text-green-600 mb-6 text-center">👨‍🎓 학생 정보 입력</h2>
             <div class="space-y-4">
                 <select id="studentYearSelect" class="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-400 focus:outline-none">
                     <option value="">학년도 선택</option>
@@ -74,10 +248,10 @@
                 <input type="text" id="studentName" placeholder="이름 입력"
                        class="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-400 focus:outline-none">
                 <div class="flex space-x-3">
-                    <button id="studentViewSubmit" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                        조회하기
+                    <button id="studentInfoSubmit" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                        입장하기
                     </button>
-                    <button id="studentViewCancel" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-xl font-semibold transition-colors">
+                    <button id="studentInfoCancel" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-xl font-semibold transition-colors">
                         취소
                     </button>
                 </div>
@@ -85,617 +259,533 @@
         </div>
     </div>
 
-    <!-- Mobile Menu Toggle -->
-    <button id="mobileMenuToggle" class="md:hidden fixed top-4 left-4 z-50 bg-purple-500 text-white p-3 rounded-full shadow-lg">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-    </button>
-
-    <div class="flex">
-        <!-- Sidebar -->
-        <div id="sidebar" class="w-56 md:w-56 bg-gradient-to-b from-purple-100 via-indigo-100 to-violet-100 h-screen fixed left-0 top-0 pt-24 px-4 shadow-2xl transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-40">
-            <div class="space-y-3">
-                <div class="text-sm md:text-lg font-bold text-indigo-700 mb-3 px-3" style="font-family: 'Nunito', sans-serif;">📅 학년도 선택</div>
-                <select id="yearSelect" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-xs md:text-sm mb-4 bg-white text-purple-700 font-semibold">
-                    <option value="">학년도 선택</option>
-                </select>
-                
-                <div class="text-sm md:text-lg font-bold text-indigo-700 mb-3 px-3" style="font-family: 'Nunito', sans-serif;">📖 수업 선택</div>
-                <select id="subjectSelect" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-xs md:text-sm mb-4 bg-white text-purple-700 font-semibold">
-                    <option value="">수업 선택</option>
-                </select>
-                
-                <div class="text-sm md:text-lg font-bold text-indigo-700 mb-3 px-3" style="font-family: 'Nunito', sans-serif;">📚 반 선택</div>
-                <select id="classSelect" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-xs md:text-sm mb-5 bg-white text-purple-700 font-semibold">
-                    <option value="">반을 선택하세요</option>
-                    <option value="1반">1반</option>
-                    <option value="2반">2반</option>
-                    <option value="3반">3반</option>
-                    <option value="4반">4반</option>
-                    <option value="5반">5반</option>
-                    <option value="6반">6반</option>
-                    <option value="7반">7반</option>
-                    <option value="8반">8반</option>
-                    <option value="9반">9반</option>
-                    <option value="10반">10반</option>
-                </select>
-                
-                <!-- Menu Separator -->
-                <div class="border-t-2 border-gray-400 border-opacity-30 my-5"></div>
-                
-                <div class="text-sm md:text-lg font-bold text-indigo-700 mb-4 px-3" style="font-family: 'Nunito', sans-serif;">📋 메뉴</div>
-                <button id="menuPoints" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
-                    ✨ 포인트 관리
-                </button>
-                <button id="menuDetails" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
-                    📊 개별 포인트 조회
-                </button>
-                <button id="menuRewards" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
-                    🎁 보상 관리
-                </button>
-                <button id="menuStudents" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
-                    👥 학생 설정
-                </button>
-                <button id="menuSettings" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
-                    ⚙️ 설정
-                </button>
+    <!-- 메인 앱 -->
+    <div id="mainApp" class="hidden">
+        <!-- 헤더 -->
+        <div class="bg-white cute-shadow mb-8 sticky top-0 z-40">
+            <div class="container mx-auto px-4 md:px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-lg md:text-4xl font-black text-indigo-700 ml-12 md:ml-0" style="font-family: 'Nunito', sans-serif; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">🌟 Minah Teacher's Class Points</h1>
+                    <div class="flex items-center space-x-2 md:space-x-4">
+                        <!-- 실시간 접속자 표시 -->
+                        <div id="onlineUsers" class="hidden md:flex items-center space-x-2 bg-green-100 px-3 py-1 rounded-full">
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span class="text-green-700 text-sm font-semibold">온라인: <span id="onlineCount">1</span>명</span>
+                        </div>
+                        
+                        <!-- 다크모드 토글 -->
+                        <button id="darkModeToggle" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full transition-colors">
+                            <span class="text-lg">🌙</span>
+                        </button>
+                        
+                        <span id="userInfo" class="text-sm md:text-base text-purple-600 font-semibold"></span>
+                        <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-3 md:px-6 py-2 rounded-full font-semibold transition-colors text-xs md:text-base">
+                            🚪 로그아웃
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Overlay for mobile -->
-        <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+        <!-- 모바일 메뉴 토글 -->
+        <button id="mobileMenuToggle" class="md:hidden fixed top-4 left-4 z-50 bg-purple-500 text-white p-3 rounded-full shadow-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
 
-        <!-- Main Content -->
-        <div class="md:ml-56 flex-1 px-4 md:px-8 pr-4 md:pr-12">
-            <!-- Login Required Message -->
-            <div id="loginRequired" class="text-center py-16">
-                <div class="bg-white rounded-2xl cute-shadow p-8 max-w-md mx-auto">
-                    <div class="text-6xl mb-4">🔐</div>
-                    <h2 class="text-2xl font-bold text-purple-600 mb-4">로그인이 필요합니다</h2>
-                    <p class="text-gray-600 mb-6">Google 계정으로 로그인하여 포인트 시스템을 사용하세요!</p>
-                    <button onclick="document.getElementById('teacherLoginBtn').click()" class="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-xl font-semibold transition-colors">
-                        👩‍🏫 Google 로그인
+        <div class="flex">
+            <!-- 사이드바 (선생님용) -->
+            <div id="sidebar" class="w-56 md:w-56 bg-gradient-to-b from-purple-100 via-indigo-100 to-violet-100 h-screen fixed left-0 top-0 pt-24 px-4 shadow-2xl transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-40">
+                <div class="space-y-3">
+                    <div class="text-sm md:text-lg font-bold text-indigo-700 mb-3 px-3">📅 학년도 선택</div>
+                    <select id="yearSelect" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-xs md:text-sm mb-4 bg-white text-purple-700 font-semibold">
+                        <option value="">학년도 선택</option>
+                    </select>
+                    
+                    <div class="text-sm md:text-lg font-bold text-indigo-700 mb-3 px-3">📖 수업 선택</div>
+                    <select id="subjectSelect" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-xs md:text-sm mb-4 bg-white text-purple-700 font-semibold">
+                        <option value="">수업 선택</option>
+                    </select>
+                    
+                    <div class="text-sm md:text-lg font-bold text-indigo-700 mb-3 px-3">📚 반 선택</div>
+                    <select id="classSelect" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-xs md:text-sm mb-5 bg-white text-purple-700 font-semibold">
+                        <option value="">반을 선택하세요</option>
+                        <option value="1반">1반</option>
+                        <option value="2반">2반</option>
+                        <option value="3반">3반</option>
+                        <option value="4반">4반</option>
+                        <option value="5반">5반</option>
+                        <option value="6반">6반</option>
+                        <option value="7반">7반</option>
+                        <option value="8반">8반</option>
+                        <option value="9반">9반</option>
+                        <option value="10반">10반</option>
+                    </select>
+                    
+                    <div class="border-t-2 border-gray-400 border-opacity-30 my-5"></div>
+                    
+                    <div class="text-sm md:text-lg font-bold text-indigo-700 mb-4 px-3">📋 메뉴</div>
+                    <button id="menuPoints" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
+                        ✨ 포인트 관리
+                    </button>
+                    <button id="menuDashboard" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
+                        📊 실시간 대시보드
+                    </button>
+                    <button id="menuDetails" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
+                        📈 개별 분석
+                    </button>
+                    <button id="menuRewards" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
+                        🎁 보상 관리
+                    </button>
+                    <button id="menuStudents" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
+                        👥 학생 관리
+                    </button>
+                    <button id="menuSettings" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
+                        ⚙️ 설정
                     </button>
                 </div>
             </div>
 
-            <!-- Points Management -->
-            <div id="pointsSection" class="space-y-8 hidden">
-                <!-- Teacher Controls -->
-                <div id="teacherControls" class="bg-white rounded-2xl cute-shadow p-6">
-                    <h2 class="text-2xl font-bold text-purple-600 mb-4">✨ 포인트 관리</h2>
-                    
-                    <!-- Selection Mode Toggle -->
-                    <div class="mb-4">
-                        <div class="flex space-x-4">
-                            <label class="flex items-center">
-                                <input type="radio" name="selectionMode" value="single" checked class="mr-2">
-                                <span class="font-semibold">개별 선택</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="radio" name="selectionMode" value="multiple" class="mr-2">
-                                <span class="font-semibold">다중 선택</span>
-                            </label>
+            <!-- 오버레이 (모바일용) -->
+            <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+
+            <!-- 메인 콘텐츠 -->
+            <div id="mainContent" class="flex-1 px-4 md:px-8 pr-4 md:pr-12">
+                <!-- 환영 메시지 -->
+                <div id="welcomeMessage" class="text-center py-16">
+                    <div class="bg-white rounded-2xl cute-shadow p-8 max-w-md mx-auto">
+                        <div class="text-6xl mb-4">🌟</div>
+                        <h2 class="text-2xl font-bold text-purple-600 mb-4">환영합니다!</h2>
+                        <p id="welcomeText" class="text-gray-600 mb-6"></p>
+                        <div id="quickStats" class="grid grid-cols-2 gap-4 mt-6">
+                            <div class="bg-blue-50 rounded-lg p-3">
+                                <div class="text-2xl font-bold text-blue-600" id="totalStudentsCount">0</div>
+                                <div class="text-sm text-blue-500">총 학생 수</div>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-3">
+                                <div class="text-2xl font-bold text-green-600" id="totalPointsCount">0</div>
+                                <div class="text-sm text-green-500">총 포인트</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 학생 뷰 섹션 -->
+                <div id="studentViewSection" class="hidden">
+                    <div id="studentPointDisplay" class="bg-white rounded-2xl cute-shadow p-8 text-center">
+                        <h2 class="text-3xl font-bold text-green-600 mb-6">👨‍🎓 내 포인트 현황</h2>
+                        <div id="studentInfo"></div>
+                        
+                        <!-- 학생용 실시간 랭킹 -->
+                        <div class="mt-8 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6">
+                            <h3 class="text-xl font-bold text-orange-600 mb-4">🏆 실시간 반 랭킹</h3>
+                            <div id="studentRanking"></div>
+                        </div>
+                        
+                        <!-- 개인 목표 설정 -->
+                        <div class="mt-8 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6">
+                            <h3 class="text-xl font-bold text-purple-600 mb-4">🎯 나의 목표</h3>
+                            <div id="personalGoals"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 선생님 섹션들 -->
+                <div id="teacherSections">
+                    <!-- 포인트 관리 -->
+                    <div id="pointsSection" class="space-y-8 hidden">
+                        <div id="teacherControls" class="bg-white rounded-2xl cute-shadow p-6">
+                            <h2 class="text-2xl font-bold text-purple-600 mb-4">✨ 포인트 관리</h2>
+                            
+                            <!-- 선택 모드 토글 -->
+                            <div class="mb-4">
+                                <div class="flex space-x-4">
+                                    <label class="flex items-center">
+                                        <input type="radio" name="selectionMode" value="single" checked class="mr-2">
+                                        <span class="font-semibold">개별 선택</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" name="selectionMode" value="multiple" class="mr-2">
+                                        <span class="font-semibold">다중 선택</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- 개별 선택 모드 -->
+                            <div id="singleMode" class="grid md:grid-cols-2 gap-4 mb-4">
+                                <select id="studentSelect" class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                    <option value="">학생 선택</option>
+                                </select>
+                                <input type="number" id="pointValue" placeholder="포인트" min="1" max="10"
+                                       class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                            </div>
+
+                            <!-- 다중 선택 모드 -->
+                            <div id="multipleMode" class="hidden mb-4">
+                                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between items-center">
+                                            <label class="font-semibold text-purple-600">학생 선택 (다중)</label>
+                                            <div class="space-x-2">
+                                                <button type="button" id="selectAllStudents" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">전체선택</button>
+                                                <button type="button" id="clearAllStudents" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm">전체해제</button>
+                                            </div>
+                                        </div>
+                                        <input type="text" id="studentSearchInput" placeholder="🔍 이름 또는 번호로 검색..." 
+                                               class="w-full px-3 py-2 border-2 border-purple-200 rounded-lg focus:border-purple-400 focus:outline-none text-sm">
+                                        <div id="studentCheckboxList" class="max-h-40 overflow-y-auto border-2 border-purple-200 rounded-xl p-3 bg-gray-50">
+                                        </div>
+                                    </div>
+                                    <input type="number" id="pointValueMultiple" placeholder="포인트" min="1" max="10"
+                                           class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                </div>
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                <select id="pointCategory" class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                    <option value="">카테고리 선택</option>
+                                    <option value="발표">📢 발표</option>
+                                    <option value="과제">📝 과제</option>
+                                    <option value="참여">🙋‍♂️ 수업 참여</option>
+                                    <option value="협력">🤝 팀워크</option>
+                                    <option value="창의">💡 창의성</option>
+                                    <option value="기타">⭐ 기타</option>
+                                </select>
+                                <input type="text" id="pointDescription" placeholder="간단한 설명 (선택사항)" 
+                                       class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                            </div>
+                            
+                            <!-- 빠른 포인트 버튼 -->
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-purple-600 mb-2">빠른 포인트 추가</label>
+                                <div class="flex space-x-2">
+                                    <button type="button" class="quick-point-btn bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg font-semibold" data-points="1">+1점</button>
+                                    <button type="button" class="quick-point-btn bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded-lg font-semibold" data-points="2">+2점</button>
+                                    <button type="button" class="quick-point-btn bg-purple-100 hover:bg-purple-200 text-purple-700 px-4 py-2 rounded-lg font-semibold" data-points="3">+3점</button>
+                                    <button type="button" class="quick-point-btn bg-orange-100 hover:bg-orange-200 text-orange-700 px-4 py-2 rounded-lg font-semibold" data-points="5">+5점</button>
+                                </div>
+                            </div>
+                            
+                            <button id="addPointBtn" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                🎉 포인트 추가
+                            </button>
+                        </div>
+
+                        <!-- 포인트 추가 결과 -->
+                        <div id="pointAdditionResult" class="bg-white rounded-2xl cute-shadow p-6 hidden">
+                            <h2 class="text-2xl font-bold text-green-600 mb-4">✅ 포인트 추가 완료</h2>
+                            <div id="updatedStudentsDisplay" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
                         </div>
                     </div>
 
-                    <!-- Single Selection Mode -->
-                    <div id="singleMode" class="grid md:grid-cols-2 gap-4 mb-4">
-                        <select id="studentSelect" class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
-                            <option value="">학생 선택</option>
-                        </select>
-                        <input type="number" id="pointValue" placeholder="포인트" min="1" max="10"
-                               class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                    <!-- 실시간 대시보드 -->
+                    <div id="dashboardSection" class="hidden space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <!-- 실시간 통계 카드들 -->
+                            <div class="bg-gradient-to-r from-blue-400 to-blue-600 text-white rounded-2xl p-6 cute-shadow">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-blue-100">총 학생 수</p>
+                                        <p class="text-3xl font-bold" id="dashTotalStudents">0</p>
+                                    </div>
+                                    <div class="text-4xl">👥</div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gradient-to-r from-green-400 to-green-600 text-white rounded-2xl p-6 cute-shadow">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-green-100">총 포인트</p>
+                                        <p class="text-3xl font-bold" id="dashTotalPoints">0</p>
+                                    </div>
+                                    <div class="text-4xl">⭐</div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gradient-to-r from-purple-400 to-purple-600 text-white rounded-2xl p-6 cute-shadow">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-purple-100">평균 포인트</p>
+                                        <p class="text-3xl font-bold" id="dashAvgPoints">0</p>
+                                    </div>
+                                    <div class="text-4xl">📊</div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gradient-to-r from-orange-400 to-orange-600 text-white rounded-2xl p-6 cute-shadow">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-orange-100">오늘 활동</p>
+                                        <p class="text-3xl font-bold" id="dashTodayActivity">0</p>
+                                    </div>
+                                    <div class="text-4xl">🔥</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 실시간 차트 -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-white rounded-2xl cute-shadow p-6">
+                                <h3 class="text-xl font-bold text-purple-600 mb-4">📈 포인트 추이</h3>
+                                <div class="chart-container">
+                                    <canvas id="pointTrendChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-2xl cute-shadow p-6">
+                                <h3 class="text-xl font-bold text-purple-600 mb-4">🏆 TOP 10 랭킹</h3>
+                                <div id="realTimeRanking"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- 카테고리별 분석 -->
+                        <div class="bg-white rounded-2xl cute-shadow p-6">
+                            <h3 class="text-xl font-bold text-purple-600 mb-4">📊 카테고리별 분석</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                <div class="text-center p-4 bg-red-50 rounded-xl">
+                                    <div class="text-2xl mb-2">📢</div>
+                                    <div class="text-sm text-gray-600">발표</div>
+                                    <div class="text-xl font-bold text-red-600" id="categoryPresentation">0</div>
+                                </div>
+                                <div class="text-center p-4 bg-blue-50 rounded-xl">
+                                    <div class="text-2xl mb-2">📝</div>
+                                    <div class="text-sm text-gray-600">과제</div>
+                                    <div class="text-xl font-bold text-blue-600" id="categoryHomework">0</div>
+                                </div>
+                                <div class="text-center p-4 bg-green-50 rounded-xl">
+                                    <div class="text-2xl mb-2">🙋‍♂️</div>
+                                    <div class="text-sm text-gray-600">참여</div>
+                                    <div class="text-xl font-bold text-green-600" id="categoryParticipation">0</div>
+                                </div>
+                                <div class="text-center p-4 bg-yellow-50 rounded-xl">
+                                    <div class="text-2xl mb-2">🤝</div>
+                                    <div class="text-sm text-gray-600">협력</div>
+                                    <div class="text-xl font-bold text-yellow-600" id="categoryTeamwork">0</div>
+                                </div>
+                                <div class="text-center p-4 bg-purple-50 rounded-xl">
+                                    <div class="text-2xl mb-2">💡</div>
+                                    <div class="text-sm text-gray-600">창의</div>
+                                    <div class="text-xl font-bold text-purple-600" id="categoryCreativity">0</div>
+                                </div>
+                                <div class="text-center p-4 bg-gray-50 rounded-xl">
+                                    <div class="text-2xl mb-2">⭐</div>
+                                    <div class="text-sm text-gray-600">기타</div>
+                                    <div class="text-xl font-bold text-gray-600" id="categoryOther">0</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Multiple Selection Mode -->
-                    <div id="multipleMode" class="hidden mb-4">
-                        <div class="grid md:grid-cols-2 gap-4 mb-4">
-                            <div class="space-y-2">
-                                <div class="flex justify-between items-center">
-                                    <label class="font-semibold text-purple-600">학생 선택 (다중)</label>
-                                    <div class="space-x-2">
-                                        <button type="button" id="selectAllStudents" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">전체선택</button>
-                                        <button type="button" id="clearAllStudents" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm">전체해제</button>
+                    <!-- 개별 분석 -->
+                    <div id="detailsSection" class="hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-purple-600">📈 개별 학생 분석</h2>
+                            <div class="space-x-2">
+                                <button id="exportAnalysisBtn" class="bg-gradient-to-r from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                    📊 분석 리포트 내보내기
+                                </button>
+                                <button id="showStatsBtn" class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                    📈 실시간 통계 보기
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 통계 패널 -->
+                        <div id="statisticsPanel" class="hidden bg-white rounded-2xl cute-shadow p-6 mb-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold text-orange-600">🏆 실시간 랭킹 & 통계</h3>
+                                <button id="hideStatsBtn" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                                    ✕ 닫기
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div id="topStudentsRanking"></div>
+                                <div id="classStatistics"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="studentDetails" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                    </div>
+
+                    <!-- 보상 관리 -->
+                    <div id="rewardsSection" class="hidden">
+                        <h2 class="text-2xl font-bold text-purple-600 mb-6">🎁 보상 관리</h2>
+                        
+                        <!-- 보상 설정 -->
+                        <div class="bg-white rounded-2xl cute-shadow p-6 mb-6">
+                            <h3 class="text-xl font-bold text-purple-600 mb-4">⚙️ 보상 설정</h3>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-purple-600 mb-2">보상 간격 (점수)</label>
+                                    <input type="number" id="rewardInterval" placeholder="10" min="1" max="50" value="10"
+                                           class="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-purple-600 mb-2">최대 보상 점수</label>
+                                    <input type="number" id="maxRewardPoints" placeholder="100" min="10" max="500" value="100"
+                                           class="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                </div>
+                                <div class="flex items-end">
+                                    <button id="saveRewardSettingsBtn" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                        💾 설정 저장
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="rewardsDisplay" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                    </div>
+
+                    <!-- 학생 관리 -->
+                    <div id="studentsSection" class="hidden space-y-8">
+                        <!-- 엑셀 업로드 -->
+                        <div class="bg-white rounded-2xl cute-shadow p-6">
+                            <h2 class="text-2xl font-bold text-purple-600 mb-4">📊 학생 명단 업로드</h2>
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-600 mb-2">엑셀 파일 형식: 연번(A열), 이름(B열)</p>
+                                <input type="file" id="excelFile" accept=".xlsx,.xls" 
+                                       class="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                            </div>
+                            <button id="uploadBtn" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                📤 명단 업로드
+                            </button>
+                        </div>
+
+                        <!-- 수동 학생 관리 -->
+                        <div class="bg-white rounded-2xl cute-shadow p-6">
+                            <h2 class="text-2xl font-bold text-purple-600 mb-4">👤 학생 개별 관리</h2>
+                            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                                <input type="number" id="newStudentNumber" placeholder="번호" 
+                                       class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                <input type="text" id="newStudentName" placeholder="이름" 
+                                       class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                <button id="addStudentBtn" class="bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    ➕ 학생 추가
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 학생 목록 관리 -->
+                        <div class="bg-white rounded-2xl cute-shadow p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-2xl font-bold text-purple-600">📋 현재 학생 목록</h2>
+                                <div class="space-x-2">
+                                    <button id="selectAllBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors">
+                                        ✅ 전체 선택
+                                    </button>
+                                    <button id="deleteSelectedBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors">
+                                        🗑️ 선택 삭제
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="studentManagementList"></div>
+                        </div>
+                    </div>
+
+                    <!-- 설정 -->
+                    <div id="settingsSection" class="hidden space-y-8">
+                        <!-- Firebase 연결 상태 -->
+                        <div class="bg-white rounded-2xl cute-shadow p-6">
+                            <h2 class="text-2xl font-bold text-green-600 mb-4">🔥 Firebase 연결 상태</h2>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="bg-green-50 rounded-xl p-4">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                                        <span class="font-semibold text-green-700">실시간 동기화 활성</span>
+                                    </div>
+                                    <p class="text-sm text-green-600">모든 데이터가 실시간으로 동기화됩니다</p>
+                                </div>
+                                <div class="bg-blue-50 rounded-xl p-4">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                        <span class="font-semibold text-blue-700">구글 계정 연동</span>
+                                    </div>
+                                    <p class="text-sm text-blue-600">안전한 구글 인증으로 보호됩니다</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 데이터 관리 -->
+                        <div class="bg-white rounded-2xl cute-shadow p-6">
+                            <h2 class="text-2xl font-bold text-orange-600 mb-4">💾 데이터 관리</h2>
+                            
+                            <!-- 저장 공간 사용량 -->
+                            <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-4">
+                                <h3 class="text-lg font-bold text-purple-600 mb-3">📊 데이터 현황</h3>
+                                <div id="storageInfo" class="space-y-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">총 학생 수:</span>
+                                        <span id="totalStudents" class="font-bold text-blue-600">0명</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">총 포인트 기록:</span>
+                                        <span id="totalPointRecords" class="font-bold text-green-600">0개</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">마지막 업데이트:</span>
+                                        <span id="lastUpdate" class="font-bold text-purple-600">-</span>
                                     </div>
                                 </div>
-                                <input type="text" id="studentSearchInput" placeholder="🔍 이름 또는 번호로 검색..." 
-                                       class="w-full px-3 py-2 border-2 border-purple-200 rounded-lg focus:border-purple-400 focus:outline-none text-sm">
-                                <div id="studentCheckboxList" class="max-h-40 overflow-y-auto border-2 border-purple-200 rounded-xl p-3 bg-gray-50">
-                                    <!-- Student checkboxes will be populated here -->
+                            </div>
+
+                            <!-- 백업 옵션 -->
+                            <div class="space-y-4">
+                                <div class="bg-green-50 rounded-xl p-4">
+                                    <h4 class="text-lg font-bold text-green-600 mb-3">📊 엑셀 백업</h4>
+                                    <div class="grid md:grid-cols-2 gap-3">
+                                        <button id="backupExcelAllBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                            📊 전체 데이터 백업
+                                        </button>
+                                        <button id="backupExcelCurrentBtn" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition-colors">
+                                            📋 현재 반만 백업
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            <input type="number" id="pointValueMultiple" placeholder="포인트" min="1" max="10"
-                                   class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
                         </div>
-                    </div>
 
-                    <div class="grid md:grid-cols-2 gap-4 mb-4">
-                        <select id="pointCategory" class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
-                            <option value="">카테고리 선택</option>
-                            <option value="발표">📢 발표</option>
-                            <option value="과제">📝 과제</option>
-                            <option value="기타">⭐ 기타</option>
-                        </select>
-                        <input type="text" id="pointDescription" placeholder="간단한 설명 (선택사항)" 
-                               class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
-                    </div>
-                    <button id="addPointBtn" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                        🎉 포인트 추가
-                    </button>
-                </div>
-
-                <!-- Point Addition Result -->
-                <div id="pointAdditionResult" class="bg-white rounded-2xl cute-shadow p-6 hidden">
-                    <h2 class="text-2xl font-bold text-green-600 mb-4">✅ 포인트 추가 완료</h2>
-                    <div id="updatedStudentsDisplay" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
-                </div>
-            </div>
-
-            <!-- Individual Points View -->
-            <div id="detailsSection" class="hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-purple-600">📊 개별 포인트 내역</h2>
-                    <button id="showStatsBtn" class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                        📈 실시간 통계 보기
-                    </button>
-                </div>
-                
-                <!-- Statistics Panel -->
-                <div id="statisticsPanel" class="hidden bg-white rounded-2xl cute-shadow p-6 mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold text-orange-600">🏆 TOP 10 학생 랭킹</h3>
-                        <button id="hideStatsBtn" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
-                            ✕ 닫기
-                        </button>
-                    </div>
-                    <div id="topStudentsRanking" class="grid grid-cols-1 gap-4"></div>
-                </div>
-                
-                <div id="studentDetails" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
-            </div>
-
-            <!-- Student Settings -->
-            <div id="studentsSection" class="hidden space-y-8">
-                <!-- Excel Upload -->
-                <div class="bg-white rounded-2xl cute-shadow p-6">
-                    <h2 class="text-2xl font-bold text-purple-600 mb-4">📊 학생 명단 업로드</h2>
-                    <div class="mb-4">
-                        <p class="text-sm text-gray-600 mb-2">엑셀 파일 형식: 연번(A열), 이름(B열)</p>
-                        <input type="file" id="excelFile" accept=".xlsx,.xls" 
-                               class="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
-                    </div>
-                    <button id="uploadBtn" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                        📤 명단 업로드
-                    </button>
-                </div>
-
-                <!-- Manual Student Management -->
-                <div class="bg-white rounded-2xl cute-shadow p-6">
-                    <h2 class="text-2xl font-bold text-purple-600 mb-4">👤 학생 개별 관리</h2>
-                    <div class="grid md:grid-cols-3 gap-4 mb-4">
-                        <input type="number" id="newStudentNumber" placeholder="번호" 
-                               class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
-                        <input type="text" id="newStudentName" placeholder="이름" 
-                               class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
-                        <button id="addStudentBtn" class="bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                            ➕ 학생 추가
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Student List Management -->
-                <div class="bg-white rounded-2xl cute-shadow p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold text-purple-600">📋 현재 학생 목록</h2>
-                        <div class="space-x-2">
-                            <button id="selectAllBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors">
-                                ✅ 전체 선택
-                            </button>
-                            <button id="deleteSelectedBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors">
-                                🗑️ 선택 삭제
+                        <!-- 학년도 및 수업 설정 -->
+                        <div class="bg-white rounded-2xl cute-shadow p-6">
+                            <h2 class="text-2xl font-bold text-purple-600 mb-4">⚙️ 학년도 및 수업 설정</h2>
+                            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                <input type="text" id="newYear" placeholder="학년도 (예: 2024)" 
+                                       class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                <input type="text" id="newSubject" placeholder="수업명 (예: 영어)" 
+                                       class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                            </div>
+                            <button id="saveYearSubjectBtn" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                💾 학년도/수업 저장
                             </button>
                         </div>
-                    </div>
-                    <div id="studentManagementList"></div>
-                </div>
-            </div>
 
-            <!-- Rewards Section -->
-            <div id="rewardsSection" class="hidden">
-                <h2 class="text-2xl font-bold text-purple-600 mb-6">🎁 보상 관리</h2>
-                <div id="rewardsDisplay" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
-            </div>
-
-            <!-- Settings Section -->
-            <div id="settingsSection" class="hidden space-y-8">
-                <!-- Firebase Sync Status -->
-                <div class="bg-white rounded-2xl cute-shadow p-6">
-                    <h2 class="text-2xl font-bold text-blue-600 mb-4">🔥 Firebase 동기화</h2>
-                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4">
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium">연결 상태:</span>
-                                <span id="firebaseSyncStatus" class="text-sm font-bold text-green-600">✅ 연결됨</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium">마지막 동기화:</span>
-                                <span id="lastFirebaseSync" class="text-sm text-gray-600">실시간</span>
-                            </div>
-                            <p class="text-xs text-blue-700">💡 Google 로그인으로 모든 기기에서 자동 동기화됩니다!</p>
+                        <!-- 저장된 학년도 및 수업 -->
+                        <div class="bg-white rounded-2xl cute-shadow p-6">
+                            <h2 class="text-2xl font-bold text-purple-600 mb-4">📚 저장된 학년도 및 수업</h2>
+                            <div id="savedYearSubjects"></div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Data Management Section -->
-                <div class="bg-white rounded-2xl cute-shadow p-6">
-                    <h2 class="text-2xl font-bold text-orange-600 mb-4">💾 데이터 관리</h2>
-                    
-                    <!-- Storage Usage -->
-                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-4">
-                        <h3 class="text-lg font-bold text-purple-600 mb-3">📊 저장 공간 사용량</h3>
-                        <div id="storageInfo" class="space-y-2">
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">전체 데이터 크기:</span>
-                                <span id="totalDataSize" class="font-bold text-purple-600">계산 중...</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">학생 수:</span>
-                                <span id="totalStudents" class="font-bold text-blue-600">0명</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">총 포인트 기록:</span>
-                                <span id="totalPoints" class="font-bold text-green-600">0개</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Backup & Restore -->
-                    <div class="space-y-4">
-                        <!-- Excel Backup Options -->
-                        <div class="bg-green-50 rounded-xl p-4">
-                            <h4 class="text-lg font-bold text-green-600 mb-3">📊 엑셀 백업 (추천)</h4>
-                            <div class="grid md:grid-cols-2 gap-3">
-                                <button id="backupExcelAllBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                                    📊 전체 데이터 엑셀 백업
-                                </button>
-                                <button id="backupExcelCurrentBtn" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition-colors">
-                                    📋 현재 반만 엑셀 백업
-                                </button>
-                            </div>
-                            <p class="text-sm text-green-700 mt-2">💡 엑셀 파일로 저장하면 학생별 포인트 내역을 쉽게 확인할 수 있어요!</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl cute-shadow p-6">
-                    <h2 class="text-2xl font-bold text-purple-600 mb-4">⚙️ 학년도 및 수업 설정</h2>
-                    <div class="grid md:grid-cols-2 gap-4 mb-4">
-                        <input type="text" id="newYear" placeholder="학년도 (예: 2024)" 
-                               class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
-                        <input type="text" id="newSubject" placeholder="수업명 (예: 영어)" 
-                               class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
-                    </div>
-                    <button id="saveYearSubjectBtn" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                        💾 학년도/수업 저장
-                    </button>
-                </div>
-
-                <div class="bg-white rounded-2xl cute-shadow p-6">
-                    <h2 class="text-2xl font-bold text-purple-600 mb-4">🎁 보상 설정</h2>
-                    <div class="grid md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm font-medium text-purple-600 mb-2">보상 간격 (점수)</label>
-                            <input type="number" id="rewardInterval" placeholder="10" min="1" max="50" value="10"
-                                   class="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-purple-600 mb-2">최대 보상 점수</label>
-                            <input type="number" id="maxRewardPoints" placeholder="100" min="10" max="500" value="100"
-                                   class="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
-                        </div>
-                    </div>
-                    <button id="saveRewardSettingsBtn" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                        💾 보상 설정 저장
-                    </button>
-                </div>
-
-                <div class="bg-white rounded-2xl cute-shadow p-6">
-                    <h2 class="text-2xl font-bold text-purple-600 mb-4">📚 저장된 학년도 및 수업</h2>
-                    <div id="savedYearSubjects"></div>
-                </div>
-            </div>
-
-            <!-- Student View Section -->
-            <div id="studentViewSection" class="hidden">
-                <div id="studentPointDisplay" class="bg-white rounded-2xl cute-shadow p-8 text-center">
-                    <h2 class="text-3xl font-bold text-green-600 mb-6">👨‍🎓 내 포인트 현황</h2>
-                    <div id="studentInfo"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase Configuration -->
-    <script type="module">
-        // Firebase imports
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
-        import {getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
-        import { initializeFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
-
-        // Firebase configuration - Demo mode with fallback to localStorage
-        const firebaseConfig = {
-            apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
-            authDomain: "minah-teacher-s-class-points.firebaseapp.com",
-            projectId: "minah-teacher-s-class-points",
-            storageBucket: "minah-teacher-s-class-points.firebasestorage.app",
-            messagingSenderId: "50388651847",
-            appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
-          };
-
-        // Initialize Firebase with error handling for demo mode
-        let app, db, auth, provider;
-        let isFirebaseAvailable = false;
-        
-        try {
-            app = initializeApp(firebaseConfig);
-            db = initializeFirestore(app, { 
-                experimentalForceLongPolling: true, 
-                useFetchStreams: false 
-            });
-            auth = getAuth(app);
-            provider = new GoogleAuthProvider();
-            provider.setCustomParameters({ prompt: 'select_account' });
-            isFirebaseAvailable = true;
-            console.log("✅ Firebase 초기화 성공");
-        getRedirectResult(auth)
-         .then(res => { if (res?.user) console.log('✅ Redirect 로그인 성공:', res.user.email); })
-         .catch(e => console.error('redirect error:', e.code, e.message));
-
-        } catch (error) {
-            console.log("⚠️ Firebase 데모 모드 - 로컬 저장소 사용");
-            isFirebaseAvailable = false;
-        }
-
-        // Global variables
-        window.currentUser = null;
-        window.firebaseInitialized = isFirebaseAvailable;
-        window.db = db;
-        window.auth = auth;
-        window.isFirebaseAvailable = isFirebaseAvailable;
-
-        // DOM elements
-        const loginBtn = document.getElementById('teacherLoginBtn');
-        const logoutBtn = document.getElementById('teacherLogoutBtn');
-        const whoami = document.getElementById('whoami');
-        const loginRequired = document.getElementById('loginRequired');
-        const firebaseStatus = document.getElementById('firebaseStatus');
-
-        // Update Firebase status
-        if (isFirebaseAvailable) {
-            firebaseStatus.innerHTML = '<span class="text-sm text-green-600">🔥 Firebase 연결됨</span>';
-        } else {
-            firebaseStatus.innerHTML = '<span class="text-sm text-orange-600">💾 데모 모드 (로컬 저장소)</span>';
-        }
-
-        // Check for redirect result on page load (only if Firebase is available)
-        if (isFirebaseAvailable) {
-            getRedirectResult(auth)
-                .then((result) => {
-                    if (result) {
-                        console.log("✅ Google 로그인 성공:", result.user.displayName);
-                        window.currentUser = result.user;
-                        updateUI();
-                        loadUserDataFromFirestore();
-                    }
-                })
-                .catch((error) => {
-                    console.error("❌ 로그인 오류:", error);
-                    firebaseStatus.innerHTML = '<span class="text-sm text-red-600">🔥 로그인 오류</span>';
-                });
-
-            // Auth state observer
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    window.currentUser = user;
-                    updateUI();
-                    loadUserDataFromFirestore();
-                } else {
-                    window.currentUser = null;
-                    updateUI();
-                }
-            });
-        } else {
-            // Demo mode - simulate logged in user
-            setTimeout(() => {
-                window.currentUser = { 
-                    displayName: "데모 선생님", 
-                    email: "demo@teacher.com",
-                    uid: "demo-user-123"
-                };
-                updateUI();
-                loadLocalData();
-            }, 1000);
-        }
-
-        // Login function
-       window.loginWithGoogle = async () => {
-  if (typeof isFirebaseAvailable === 'undefined' || !isFirebaseAvailable) {
-    alert("데모 모드에서는 Google 로그인을 사용할 수 없습니다.\n실제 Firebase 설정이 필요합니다.");
-    return;
-  }
-  console.log('[LOGIN] start @', location.origin);
-
-  try {
-    await signInWithPopup(auth, provider);          // 1) 팝업 시도
-    console.log('[LOGIN] popup success');
-  } catch (e) {
-    console.warn('[LOGIN] popup failed → redirect', e.code, e.message);
-    try {
-      await signInWithRedirect(auth, provider);     // 2) 팝업 막히면 리다이렉트
-    } catch (e2) {
-      console.error('[LOGIN] redirect error:', e2.code, e2.message);
-      alert('로그인 오류: ' + e2.code + '\n' + e2.message);
-    }
-  }
-};
-document.addEventListener('click', (e) => {
-  const t = e.target.closest('#teacherLoginBtn, button');
-  if (!t) return;
-
-  const txt = (t.textContent || '').toLowerCase().replace(/\s+/g, ' ');
-  const looksLikeGoogle =
-    /(google\s*로그인|구글\s*로그인|sign\s*in\s*with\s*google|continue\s*with\s*google)/i.test(txt);
-
-  if (t.id === 'teacherLoginBtn' || looksLikeGoogle) {
-    e.preventDefault(); e.stopPropagation();
-    console.log('[LOGIN] button click:', t.id || txt);
-    window.loginWithGoogle();
-  }
-});
-
-        // Logout function
-        window.logoutUser = () => {
-            if (isFirebaseAvailable) {
-                signOut(auth).then(() => {
-                    console.log("✅ 로그아웃 완료");
-                    window.currentUser = null;
-                    updateUI();
-                }).catch((error) => {
-                    console.error("❌ 로그아웃 오류:", error);
-                });
-            } else {
-                // Demo mode logout
-                window.currentUser = null;
-                updateUI();
-                console.log("✅ 데모 모드 로그아웃");
-            }
-        };
-
-        // Save data to Firestore
-        window.saveDataToFirestore = async (data) => {
-            if (!window.currentUser) return;
-            
-            if (isFirebaseAvailable) {
-                try {
-                    const userDocRef = doc(db, 'teachers', window.currentUser.uid);
-                    await setDoc(userDocRef, {
-                        ...data,
-                        lastUpdated: new Date().toISOString(),
-                        userEmail: window.currentUser.email,
-                        userName: window.currentUser.displayName
-                    });
-                    console.log("✅ Firestore 저장 완료");
-                } catch (error) {
-                    console.error("❌ Firestore 저장 실패:", error);
-                    // Fallback to localStorage
-                    saveToLocalStorage(data);
-                }
-            } else {
-                // Demo mode - save to localStorage
-                saveToLocalStorage(data);
-            }
-        };
-
-        // Load data from Firestore
-        window.loadUserDataFromFirestore = async () => {
-            if (!window.currentUser) return;
-            
-            if (isFirebaseAvailable) {
-                try {
-                    const userDocRef = doc(db, 'teachers', window.currentUser.uid);
-                    const docSnap = await getDoc(userDocRef);
-                    
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        if (data.classData) Object.assign(classData, data.classData);
-                        if (data.yearSubjects) Object.assign(yearSubjects, data.yearSubjects);
-                        if (data.rewardSettings) Object.assign(rewardSettings, data.rewardSettings);
-                        
-                        updateYearSelect();
-                        updateSubjectSelect();
-                        updateStorageInfo();
-                        
-                        console.log("✅ Firestore에서 데이터 로드 완료");
-                    } else {
-                        console.log("📝 새 사용자 - 기본 데이터 생성");
-                        initializeDefaultData();
-                    }
-                } catch (error) {
-                    console.error("❌ Firestore 로드 실패:", error);
-                    loadLocalData();
-                }
-            } else {
-                // Demo mode - load from localStorage
-                loadLocalData();
-            }
-        };
-
-        // Helper function to save to localStorage
-        function saveToLocalStorage(data) {
-            try {
-                localStorage.setItem('minahTeacherData', JSON.stringify({
-                    ...data,
-                    lastSaved: new Date().toISOString()
-                }));
-                console.log("✅ 로컬 저장소에 데이터 저장 완료");
-            } catch (localError) {
-                console.error("❌ 로컬 저장소 저장 실패:", localError);
-            }
-        }
-
-        // Update UI based on auth state
-        function updateUI() {
-            if (window.currentUser) {
-                loginBtn.style.display = 'none';
-                logoutBtn.style.display = 'inline-block';
-                whoami.textContent = window.currentUser.displayName || window.currentUser.email;
-                loginRequired.classList.add('hidden');
-                
-                // Show the main interface
-                showSection('points');
-            } else {
-                loginBtn.style.display = 'inline-block';
-                logoutBtn.style.display = 'none';
-                whoami.textContent = '';
-                loginRequired.classList.remove('hidden');
-                
-                // Hide all sections
-                const sections = ['pointsSection', 'detailsSection', 'studentsSection', 'rewardsSection', 'settingsSection'];
-                sections.forEach(sectionId => {
-                    const section = document.getElementById(sectionId);
-                    if (section) section.classList.add('hidden');
-                });
-            }
-        }
-
-        // Event listeners
-        loginBtn.addEventListener('click', window.loginWithGoogle);
-        logoutBtn.addEventListener('click', window.logoutUser);
-
-        // Initialize default data for new users
-        function initializeDefaultData() {
-            const currentYear = new Date().getFullYear();
-            yearSubjects[currentYear] = ['영어'];
-            
-            const key = `${currentYear}-영어`;
-            classData[key] = {
-                '1반': [], '2반': [], '3반': [], '4반': [], '5반': [],
-                '6반': [], '7반': [], '8반': [], '9반': [], '10반': []
-            };
-            
-            updateYearSelect();
-            autoSave();
-        }
-
-        console.log("🔥 Firebase 초기화 완료");
-    </script>
-
     <script>
-        // More diverse and cute SVG avatars
+        // 전역 변수
+        let currentUser = null;
+        let isTeacher = false;
+        let isStudent = false;
+        let currentStudent = null;
+        let currentYear = '';
+        let currentSubject = '';
+        let currentClass = '';
+        let currentView = 'points';
+        let rewardSettings = { interval: 10, maxPoints: 100 };
+        let unsubscribeListeners = [];
+        let isDarkMode = false;
+
+        // 다양한 아바타 SVG
         const avatars = [
-            // Happy pink character
             `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="45" fill="#FFB6C1"/>
                 <circle cx="35" cy="35" r="4" fill="#FF1493"/>
@@ -703,40 +793,28 @@ document.addEventListener('click', (e) => {
                 <path d="M 30 60 Q 50 75 70 60" stroke="#FF1493" stroke-width="3" fill="none"/>
                 <circle cx="25" cy="25" r="6" fill="#FF69B4"/>
                 <circle cx="75" cy="25" r="6" fill="#FF69B4"/>
-                <ellipse cx="50" cy="70" rx="8" ry="4" fill="#FF69B4"/>
             </svg>`,
-            // Cool blue character
             `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="45" fill="#87CEEB"/>
                 <circle cx="35" cy="38" r="3" fill="#4169E1"/>
                 <circle cx="65" cy="38" r="3" fill="#4169E1"/>
                 <path d="M 40 58 Q 50 65 60 58" stroke="#4169E1" stroke-width="2" fill="none"/>
                 <rect x="35" y="20" width="30" height="8" rx="4" fill="#4169E1"/>
-                <circle cx="20" cy="45" r="5" fill="#6495ED"/>
-                <circle cx="80" cy="45" r="5" fill="#6495ED"/>
             </svg>`,
-            // Cheerful green character
             `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="45" fill="#98FB98"/>
                 <circle cx="35" cy="40" r="4" fill="#228B22"/>
                 <circle cx="65" cy="40" r="4" fill="#228B22"/>
                 <ellipse cx="50" cy="60" rx="12" ry="8" fill="#228B22"/>
                 <polygon points="40,15 50,5 60,15 50,25" fill="#32CD32"/>
-                <circle cx="30" cy="30" r="4" fill="#90EE90"/>
-                <circle cx="70" cy="30" r="4" fill="#90EE90"/>
             </svg>`,
-            // Sunny yellow character
             `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="45" fill="#FFFF99"/>
                 <circle cx="35" cy="38" r="3" fill="#FF8C00"/>
                 <circle cx="65" cy="38" r="3" fill="#FF8C00"/>
                 <path d="M 35 62 Q 50 72 65 62" stroke="#FF8C00" stroke-width="3" fill="none"/>
                 <polygon points="45,20 50,10 55,20 50,30" fill="#FFD700"/>
-                <circle cx="25" cy="35" r="5" fill="#FFFF00"/>
-                <circle cx="75" cy="35" r="5" fill="#FFFF00"/>
-                <rect x="45" y="75" width="10" height="5" rx="2" fill="#FF8C00"/>
             </svg>`,
-            // Purple dreamy character
             `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="45" fill="#DDA0DD"/>
                 <circle cx="35" cy="40" r="4" fill="#8A2BE2"/>
@@ -744,1606 +822,603 @@ document.addEventListener('click', (e) => {
                 <path d="M 40 60 Q 50 68 60 60" stroke="#8A2BE2" stroke-width="2" fill="none"/>
                 <ellipse cx="35" cy="25" rx="8" ry="12" fill="#9370DB"/>
                 <ellipse cx="65" cy="25" rx="8" ry="12" fill="#9370DB"/>
-                <circle cx="50" cy="75" r="3" fill="#8A2BE2"/>
-            </svg>`,
-            // Orange energetic character
-            `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="45" fill="#FFDAB9"/>
-                <circle cx="35" cy="35" r="4" fill="#FF4500"/>
-                <circle cx="65" cy="35" r="4" fill="#FF4500"/>
-                <path d="M 25 55 Q 50 80 75 55" stroke="#FF4500" stroke-width="4" fill="none"/>
-                <polygon points="30,20 50,10 70,20 60,30 40,30" fill="#FF6347"/>
-                <circle cx="20" cy="40" r="6" fill="#FFA500"/>
-                <circle cx="80" cy="40" r="6" fill="#FFA500"/>
-            </svg>`,
-            // Mint fresh character
-            `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="45" fill="#AFEEEE"/>
-                <circle cx="35" cy="42" r="3" fill="#008B8B"/>
-                <circle cx="65" cy="42" r="3" fill="#008B8B"/>
-                <ellipse cx="50" cy="58" rx="10" ry="6" fill="#008B8B"/>
-                <path d="M 30 25 Q 50 15 70 25" stroke="#20B2AA" stroke-width="3" fill="none"/>
-                <circle cx="25" cy="50" r="4" fill="#40E0D0"/>
-                <circle cx="75" cy="50" r="4" fill="#40E0D0"/>
-            </svg>`,
-            // Rose character
-            `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="45" fill="#F0C0C0"/>
-                <circle cx="35" cy="40" r="4" fill="#DC143C"/>
-                <circle cx="65" cy="40" r="4" fill="#DC143C"/>
-                <path d="M 35 65 Q 50 75 65 65" stroke="#DC143C" stroke-width="2" fill="none"/>
-                <ellipse cx="40" cy="20" rx="6" ry="10" fill="#FF69B4"/>
-                <ellipse cx="60" cy="20" rx="6" ry="10" fill="#FF69B4"/>
-                <circle cx="50" cy="72" r="4" fill="#FF1493"/>
             </svg>`
         ];
 
-        // Class data - organized by year and subject
-        const classData = {};
-        const yearSubjects = {}; // Store subjects for each year
-
-        let currentYear = '';
-        let currentSubject = '';
-        let currentClass = '';
-        let currentView = 'points';
-        let isStudentView = false;
-        let currentStudent = null;
-        let rewardSettings = { interval: 10, maxPoints: 100 };
-
-        // DOM elements
-        const studentViewBtn = document.getElementById('studentViewBtn');
-        const studentModal = document.getElementById('studentModal');
-        const studentViewCancel = document.getElementById('studentViewCancel');
-        const studentViewSubmit = document.getElementById('studentViewSubmit');
-        const studentYearSelect = document.getElementById('studentYearSelect');
-        const studentSubjectSelect = document.getElementById('studentSubjectSelect');
-        const studentClassSelect = document.getElementById('studentClassSelect');
-        const studentNumber = document.getElementById('studentNumber');
-        const studentName = document.getElementById('studentName');
-        const studentViewSection = document.getElementById('studentViewSection');
-        const studentInfo = document.getElementById('studentInfo');
-        const yearSelect = document.getElementById('yearSelect');
-        const subjectSelect = document.getElementById('subjectSelect');
-        const classSelect = document.getElementById('classSelect');
-        const menuPoints = document.getElementById('menuPoints');
-        const menuDetails = document.getElementById('menuDetails');
-        const menuStudents = document.getElementById('menuStudents');
-        const menuRewards = document.getElementById('menuRewards');
-        const menuSettings = document.getElementById('menuSettings');
-        const pointsSection = document.getElementById('pointsSection');
-        const detailsSection = document.getElementById('detailsSection');
-        const studentsSection = document.getElementById('studentsSection');
-        const rewardsSection = document.getElementById('rewardsSection');
-        const settingsSection = document.getElementById('settingsSection');
-        const teacherControls = document.getElementById('teacherControls');
-        const studentSelect = document.getElementById('studentSelect');
-        const addPointBtn = document.getElementById('addPointBtn');
-        const excelFile = document.getElementById('excelFile');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const addStudentBtn = document.getElementById('addStudentBtn');
-        const studentManagementList = document.getElementById('studentManagementList');
-        const selectAllBtn = document.getElementById('selectAllBtn');
-        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
-        const saveYearSubjectBtn = document.getElementById('saveYearSubjectBtn');
-        const savedYearSubjects = document.getElementById('savedYearSubjects');
-        const saveRewardSettingsBtn = document.getElementById('saveRewardSettingsBtn');
-        const showStatsBtn = document.getElementById('showStatsBtn');
-        const hideStatsBtn = document.getElementById('hideStatsBtn');
-        const statisticsPanel = document.getElementById('statisticsPanel');
-        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const backupExcelAllBtn = document.getElementById('backupExcelAllBtn');
-        const backupExcelCurrentBtn = document.getElementById('backupExcelCurrentBtn');
-
-        // Auto-save function
-        function autoSave() {
-            if (window.currentUser && window.saveDataToFirestore) {
-                const dataToSave = {
-                    classData: classData,
-                    yearSubjects: yearSubjects,
-                    rewardSettings: rewardSettings
-                };
-                window.saveDataToFirestore(dataToSave);
+        // Firebase 인증 상태 변화 감지
+        setTimeout(() => {
+            if (window.onAuthStateChanged && window.auth) {
+                window.onAuthStateChanged(window.auth, (user) => {
+                    document.getElementById('loadingScreen').classList.add('hidden');
+                    
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('loginScreen').classList.add('hidden');
+                        document.getElementById('roleSelectionScreen').classList.remove('hidden');
+                        document.getElementById('userEmail').textContent = user.email;
+                    } else {
+                        currentUser = null;
+                        document.getElementById('loginScreen').classList.remove('hidden');
+                        document.getElementById('roleSelectionScreen').classList.add('hidden');
+                        document.getElementById('mainApp').classList.add('hidden');
+                    }
+                });
             } else {
-                // 로컬 저장소에 백업
-                try {
-                    localStorage.setItem('minahTeacherData', JSON.stringify({
-                        classData: classData,
-                        yearSubjects: yearSubjects,
-                        rewardSettings: rewardSettings,
-                        lastSaved: new Date().toISOString()
-                    }));
-                    console.log("✅ 로컬 저장소에 데이터 저장 완료");
-                } catch (error) {
-                    console.error("❌ 로컬 저장소 저장 실패:", error);
-                }
+                // Firebase 연결 실패시 로컬 모드로 전환
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+                showNotification('⚠️ Firebase 연결 실패 - 로컬 모드로 실행됩니다', 'warning');
             }
-        }
+        }, 2000);
 
-        // 로컬 저장소에서 데이터 로드
-        function loadLocalData() {
+        // 구글 로그인
+        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
             try {
-                const savedData = localStorage.getItem('minahTeacherData');
-                if (savedData) {
-                    const data = JSON.parse(savedData);
-                    if (data.classData) Object.assign(classData, data.classData);
-                    if (data.yearSubjects) Object.assign(yearSubjects, data.yearSubjects);
-                    if (data.rewardSettings) Object.assign(rewardSettings, data.rewardSettings);
-                    
-                    updateYearSelect();
-                    updateSubjectSelect();
-                    updateStorageInfo();
-                    
-                    console.log("✅ 로컬 저장소에서 데이터 로드 완료");
+                if (window.signInWithPopup && window.auth && window.provider) {
+                    const result = await window.signInWithPopup(window.auth, window.provider);
+                    showNotification('✅ 로그인 성공!', 'success');
+                } else {
+                    // Firebase 없이 로컬 모드
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('roleSelectionScreen').classList.remove('hidden');
+                    document.getElementById('userEmail').textContent = 'local@example.com';
                 }
             } catch (error) {
-                console.error("❌ 로컬 저장소 로드 실패:", error);
+                console.error('로그인 오류:', error);
+                showNotification('❌ 로그인 실패: ' + error.message, 'error');
             }
-        }
-
-        // 페이지 로드 시 로컬 데이터 로드
-        loadLocalData();
-
-        // Load all teacher data for student view
-        function loadAllTeacherDataForStudentView() {
-            // This function ensures all data is available for student view
-            // Data is already loaded from Firestore when user logs in or from localStorage
-        }
-
-        // Menu navigation
-        function showSection(section) {
-            // 로컬 모드에서는 항상 허용
-            
-            // Hide all sections
-            pointsSection.classList.add('hidden');
-            detailsSection.classList.add('hidden');
-            studentsSection.classList.add('hidden');
-            rewardsSection.classList.add('hidden');
-            settingsSection.classList.add('hidden');
-            
-            // Auto-close statistics panel when switching sections
-            statisticsPanel.classList.add('hidden');
-            
-            // Remove active class from all menu items
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Show selected section and activate menu item
-            if (section === 'points') {
-                pointsSection.classList.remove('hidden');
-                menuPoints.classList.add('active');
-                if (currentYear && currentSubject && currentClass) {
-                    updateStudentSelect();
-                    updateStudentCheckboxList();
-                    teacherControls.classList.remove('hidden');
-                }
-            } else if (section === 'details') {
-                detailsSection.classList.remove('hidden');
-                menuDetails.classList.add('active');
-                if (currentYear && currentSubject && currentClass) {
-                    displayStudentDetails();
-                }
-            } else if (section === 'students') {
-                studentsSection.classList.remove('hidden');
-                menuStudents.classList.add('active');
-                if (currentYear && currentSubject && currentClass) {
-                    displayStudentManagement();
-                }
-            } else if (section === 'rewards') {
-                rewardsSection.classList.remove('hidden');
-                menuRewards.classList.add('active');
-                if (currentYear && currentSubject && currentClass) {
-                    displayRewards();
-                }
-            } else if (section === 'settings') {
-                settingsSection.classList.remove('hidden');
-                menuSettings.classList.add('active');
-                displaySavedYearSubjects();
-                updateStorageInfo();
-            }
-            currentView = section;
-        }
-
-        // Firebase 모드로 시작 - 로그인 상태에 따라 UI 업데이트
-
-        // Mobile menu toggle
-        mobileMenuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-            sidebarOverlay.classList.toggle('hidden');
         });
 
-        sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            sidebarOverlay.classList.add('hidden');
+        // 역할 선택
+        document.getElementById('selectTeacherBtn').addEventListener('click', () => {
+            isTeacher = true;
+            isStudent = false;
+            enterMainApp();
         });
 
-        // Close mobile menu when menu item is clicked
-        function closeMobileMenu() {
-            if (window.innerWidth < 768) {
-                sidebar.classList.add('-translate-x-full');
-                sidebarOverlay.classList.add('hidden');
-            }
-        }
-
-        // Event listeners
-        menuPoints.addEventListener('click', () => {
-            showSection('points');
-            closeMobileMenu();
-        });
-        menuDetails.addEventListener('click', () => {
-            showSection('details');
-            closeMobileMenu();
-        });
-        menuStudents.addEventListener('click', () => {
-            showSection('students');
-            closeMobileMenu();
-        });
-        menuRewards.addEventListener('click', () => {
-            showSection('rewards');
-            closeMobileMenu();
-        });
-        menuSettings.addEventListener('click', () => {
-            showSection('settings');
-            closeMobileMenu();
+        document.getElementById('selectStudentBtn').addEventListener('click', () => {
+            document.getElementById('roleSelectionScreen').classList.add('hidden');
+            document.getElementById('studentInfoModal').classList.remove('hidden');
+            loadYearSubjectsForStudent();
         });
 
-        studentViewBtn.addEventListener('click', () => {
-            loadAllTeacherDataForStudentView();
-            studentModal.classList.remove('hidden');
-            updateStudentYearSelect();
-            
-            setTimeout(() => {
-                updateStudentYearSelect();
-            }, 100);
-        });
+        // 학생 정보 입력
+        document.getElementById('studentInfoSubmit').addEventListener('click', async () => {
+            const year = document.getElementById('studentYearSelect').value;
+            const subject = document.getElementById('studentSubjectSelect').value;
+            const className = document.getElementById('studentClassSelect').value;
+            const number = parseInt(document.getElementById('studentNumber').value);
+            const name = document.getElementById('studentName').value.trim();
 
-        studentViewCancel.addEventListener('click', () => {
-            studentModal.classList.add('hidden');
-            resetStudentSelects();
-        });
-
-        studentViewSubmit.addEventListener('click', () => {
-            const year = studentYearSelect.value;
-            const subject = studentSubjectSelect.value;
-            const className = studentClassSelect.value;
-            const inputNumber = parseInt(studentNumber.value);
-            const inputName = studentName.value.trim();
-            
-            if (!year || !subject || !className || !inputNumber || !inputName) {
-                alert('모든 항목을 입력해주세요.');
+            if (!year || !subject || !className || !number || !name) {
+                showNotification('❌ 모든 항목을 입력해주세요', 'error');
                 return;
             }
-            
-            const key = `${year}-${subject}`;
-            const student = classData[key][className].find(s => 
-                s.number === inputNumber && s.name === inputName
-            );
-            
-            if (!student) {
-                alert('학번과 이름이 일치하는 학생을 찾을 수 없습니다.');
-                return;
-            }
-            
-            currentStudent = student;
-            isStudentView = true;
-            studentModal.classList.add('hidden');
-            showStudentView();
-        });
 
-        // Selection mode toggle
-        document.querySelectorAll('input[name="selectionMode"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                const singleMode = document.getElementById('singleMode');
-                const multipleMode = document.getElementById('multipleMode');
-                
-                if (e.target.value === 'single') {
-                    singleMode.classList.remove('hidden');
-                    multipleMode.classList.add('hidden');
+            try {
+                const student = await findStudent(year, subject, className, number, name);
+                if (student) {
+                    isStudent = true;
+                    isTeacher = false;
+                    currentStudent = student;
+                    currentYear = year;
+                    currentSubject = subject;
+                    currentClass = className;
+                    
+                    document.getElementById('studentInfoModal').classList.add('hidden');
+                    enterMainApp();
+                    showNotification(`👨‍🎓 ${name}님 환영합니다!`, 'success');
                 } else {
-                    singleMode.classList.add('hidden');
-                    multipleMode.classList.remove('hidden');
-                    updateStudentCheckboxList();
+                    showNotification('❌ 학번과 이름이 일치하는 학생을 찾을 수 없습니다', 'error');
                 }
-            });
+            } catch (error) {
+                console.error('학생 찾기 오류:', error);
+                showNotification('❌ 오류가 발생했습니다', 'error');
+            }
         });
 
-        // Multiple selection buttons
-        document.getElementById('selectAllStudents').addEventListener('click', () => {
-            document.querySelectorAll('#studentCheckboxList input[type="checkbox"]').forEach(cb => {
-                cb.checked = true;
-            });
+        document.getElementById('studentInfoCancel').addEventListener('click', () => {
+            document.getElementById('studentInfoModal').classList.add('hidden');
+            document.getElementById('roleSelectionScreen').classList.remove('hidden');
         });
 
-        document.getElementById('clearAllStudents').addEventListener('click', () => {
-            document.querySelectorAll('#studentCheckboxList input[type="checkbox"]').forEach(cb => {
-                cb.checked = false;
-            });
-        });
-
-        // Student search functionality
-        document.getElementById('studentSearchInput').addEventListener('input', (e) => {
-            const searchTerm = e.target.value;
-            updateStudentCheckboxList(searchTerm);
-        });
-
-        studentYearSelect.addEventListener('change', () => {
-            updateStudentSubjectSelect();
-            studentSubjectSelect.value = '';
-            studentClassSelect.value = '';
-            studentNumber.value = '';
-            studentName.value = '';
-        });
-
-        studentSubjectSelect.addEventListener('change', () => {
-            studentClassSelect.value = '';
-            studentNumber.value = '';
-            studentName.value = '';
-        });
-
-        studentClassSelect.addEventListener('change', () => {
-            studentNumber.value = '';
-            studentName.value = '';
-        });
-
-        uploadBtn.addEventListener('click', () => {
-            const file = excelFile.files[0];
-            if (!file) {
-                alert('엑셀 파일을 선택해주세요.');
-                return;
+        // 메인 앱 진입
+        function enterMainApp() {
+            document.getElementById('roleSelectionScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            if (isTeacher) {
+                setupTeacherInterface();
+            } else if (isStudent) {
+                setupStudentInterface();
             }
             
-            if (!currentYear || !currentSubject || !currentClass) {
-                alert('학년도, 수업, 반을 모두 선택해주세요.');
-                return;
-            }
+            initializeApp();
+        }
+
+        // 선생님 인터페이스 설정
+        function setupTeacherInterface() {
+            document.getElementById('sidebar').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('md:ml-56');
+            document.getElementById('teacherSections').classList.remove('hidden');
+            document.getElementById('studentViewSection').classList.add('hidden');
+            document.getElementById('userInfo').textContent = `👩‍🏫 ${currentUser?.email || 'Teacher'}`;
+            document.getElementById('welcomeText').textContent = '학년도, 수업, 반을 선택하여 포인트 관리를 시작하세요!';
+        }
+
+        // 학생 인터페이스 설정
+        function setupStudentInterface() {
+            document.getElementById('sidebar').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('md:ml-56');
+            document.getElementById('teacherSections').classList.add('hidden');
+            document.getElementById('studentViewSection').classList.remove('hidden');
+            document.getElementById('welcomeMessage').classList.add('hidden');
+            document.getElementById('userInfo').textContent = `👨‍🎓 ${currentStudent?.name} (${currentStudent?.number}번)`;
             
-            const reader = new FileReader();
-            reader.onload = function(e) {
+            showStudentView();
+            setupStudentRealTimeUpdates();
+        }
+
+        // 로그아웃
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            if (confirm('로그아웃 하시겠습니까?')) {
                 try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[sheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    // Firebase 리스너 정리
+                    unsubscribeListeners.forEach(unsubscribe => unsubscribe());
+                    unsubscribeListeners = [];
                     
-                    const key = `${currentYear}-${currentSubject}`;
-                    // Clear existing data for the class
-                    classData[key][currentClass] = [];
-                    
-                    // Process data (skip header row - start from index 1)
-                    for (let i = 1; i < jsonData.length; i++) {
-                        const row = jsonData[i];
-                        if (row[0] && row[1]) { // Check if both number and name exist
-                            classData[key][currentClass].push({
-                                number: row[0],
-                                name: row[1],
-                                points: [],
-                                totalPoints: 0
-                            });
-                        }
+                    if (window.signOut && window.auth) {
+                        await window.signOut(window.auth);
                     }
                     
-                    alert(`${currentClass}에 ${classData[key][currentClass].length}명의 학생이 업로드되었습니다!`);
-                    displayStudentManagement();
-                    updateStudentSelect();
-                    excelFile.value = '';
+                    // 상태 초기화
+                    currentUser = null;
+                    isTeacher = false;
+                    isStudent = false;
+                    currentStudent = null;
+                    currentYear = '';
+                    currentSubject = '';
+                    currentClass = '';
                     
-                    // Auto-save data
-                    autoSave();
+                    showNotification('👋 로그아웃되었습니다', 'info');
                 } catch (error) {
-                    alert('엑셀 파일을 읽는 중 오류가 발생했습니다.');
+                    console.error('로그아웃 오류:', error);
+                    showNotification('❌ 로그아웃 중 오류가 발생했습니다', 'error');
                 }
+            }
+        });
+
+        // 실시간 알림 시스템
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
             };
-            reader.readAsArrayBuffer(file);
+            
+            notification.className = `notification ${colors[type]} text-white px-6 py-4 rounded-lg shadow-lg`;
+            notification.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">✕</button>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // 애니메이션
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            // 자동 제거
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // 다크모드 토글
+        document.getElementById('darkModeToggle').addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            document.getElementById('darkModeToggle').innerHTML = isDarkMode ? '☀️' : '🌙';
+            localStorage.setItem('darkMode', isDarkMode);
         });
 
-        addStudentBtn.addEventListener('click', () => {
-            const number = document.getElementById('newStudentNumber').value.trim();
-            const name = document.getElementById('newStudentName').value.trim();
-            
-            if (!number || !name) {
-                alert('번호와 이름을 모두 입력해주세요.');
-                return;
-            }
-            
-            if (!currentYear || !currentSubject || !currentClass) {
-                alert('학년도, 수업, 반을 모두 선택해주세요.');
-                return;
-            }
-            
-            const key = `${currentYear}-${currentSubject}`;
-            // Check if number already exists
-            if (classData[key][currentClass].find(s => s.number == number)) {
-                alert('이미 존재하는 번호입니다.');
-                return;
-            }
-            
-            classData[key][currentClass].push({
-                number: parseInt(number),
-                name: name,
-                points: [],
-                totalPoints: 0
-            });
-            
-            // Sort by number
-            classData[key][currentClass].sort((a, b) => a.number - b.number);
-            
-            document.getElementById('newStudentNumber').value = '';
-            document.getElementById('newStudentName').value = '';
-            
-            displayStudentManagement();
-            updateStudentSelect();
-            alert(`${name} 학생이 추가되었습니다!`);
-            
-            // Auto-save data
-            autoSave();
-        });
+        // 다크모드 설정 로드
+        if (localStorage.getItem('darkMode') === 'true') {
+            isDarkMode = true;
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeToggle').innerHTML = '☀️';
+        }
 
-        saveYearSubjectBtn.addEventListener('click', () => {
-            const year = document.getElementById('newYear').value.trim();
-            const subject = document.getElementById('newSubject').value.trim();
-            
-            if (!year || !subject) {
-                alert('학년도와 수업명을 모두 입력해주세요.');
-                return;
-            }
-            
-            if (!yearSubjects[year]) {
-                yearSubjects[year] = [];
-            }
-            
-            if (!yearSubjects[year].includes(subject)) {
-                yearSubjects[year].push(subject);
-                
-                // Initialize class data for this year-subject combination
-                const key = `${year}-${subject}`;
-                if (!classData[key]) {
-                    classData[key] = {
-                        '1반': [], '2반': [], '3반': [], '4반': [], '5반': [],
-                        '6반': [], '7반': [], '8반': [], '9반': [], '10반': []
-                    };
-                }
-                
-                updateYearSelect();
-                displaySavedYearSubjects();
-                
-                document.getElementById('newYear').value = '';
-                document.getElementById('newSubject').value = '';
-                
-                alert(`${year}년도 ${subject} 수업이 추가되었습니다!`);
-                
-                // Auto-save data
-                autoSave();
-            } else {
-                alert('이미 존재하는 수업입니다.');
-            }
-        });
-
-        saveRewardSettingsBtn.addEventListener('click', () => {
-            const interval = parseInt(document.getElementById('rewardInterval').value);
-            const maxPoints = parseInt(document.getElementById('maxRewardPoints').value);
-            
-            if (!interval || !maxPoints || interval < 1 || maxPoints < 10) {
-                alert('올바른 값을 입력해주세요.');
-                return;
-            }
-            
-            rewardSettings.interval = interval;
-            rewardSettings.maxPoints = maxPoints;
-            
-            alert(`보상 설정이 저장되었습니다! (${interval}점마다 보상, 최대 ${maxPoints}점까지)`);
-            
-            // Auto-save data
-            autoSave();
-            
-            // Refresh rewards display if currently viewing
-            if (currentView === 'rewards' && currentYear && currentSubject && currentClass) {
-                displayRewards();
-            }
-        });
-
-        yearSelect.addEventListener('change', (e) => {
-            currentYear = e.target.value;
-            updateSubjectSelect();
-            currentSubject = '';
-            currentClass = '';
-            subjectSelect.value = '';
-            classSelect.value = '';
-            
-            // Hide all sections
-            const sections = ['pointsSection', 'detailsSection', 'studentsSection', 'rewardsSection', 'settingsSection'];
-            sections.forEach(sectionId => {
-                const section = document.getElementById(sectionId);
-                if (section) section.classList.add('hidden');
-            });
-        });
-
-        subjectSelect.addEventListener('change', (e) => {
-            currentSubject = e.target.value;
-            currentClass = '';
-            classSelect.value = '';
-            
-            // Hide all sections
-            const sections = ['pointsSection', 'detailsSection', 'studentsSection', 'rewardsSection', 'settingsSection'];
-            sections.forEach(sectionId => {
-                const section = document.getElementById(sectionId);
-                if (section) section.classList.add('hidden');
-            });
-        });
-
-        classSelect.addEventListener('change', (e) => {
-            currentClass = e.target.value;
-            if (currentYear && currentSubject && currentClass) {
-                showSection(currentView);
-            } else {
-                // Hide all sections
-                const sections = ['pointsSection', 'detailsSection', 'studentsSection', 'rewardsSection', 'settingsSection'];
-                sections.forEach(sectionId => {
-                    const section = document.getElementById(sectionId);
-                    if (section) section.classList.add('hidden');
-                });
-            }
-        });
-
-        selectAllBtn.addEventListener('click', () => {
-            const checkboxes = document.querySelectorAll('.student-checkbox');
-            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-            checkboxes.forEach(cb => cb.checked = !allChecked);
-        });
-
-        deleteSelectedBtn.addEventListener('click', () => {
-            const checkboxes = document.querySelectorAll('.student-checkbox:checked');
-            if (checkboxes.length === 0) {
-                alert('삭제할 학생을 선택해주세요.');
-                return;
-            }
-            
-            if (!confirm(`선택된 ${checkboxes.length}명의 학생을 삭제하시겠습니까?`)) return;
-            
-            const key = `${currentYear}-${currentSubject}`;
-            checkboxes.forEach(cb => {
-                const studentNumber = parseInt(cb.value);
-                const studentIndex = classData[key][currentClass].findIndex(s => s.number === studentNumber);
-                if (studentIndex !== -1) {
-                    classData[key][currentClass].splice(studentIndex, 1);
-                }
-            });
-            
-            displayStudentManagement();
-            alert('선택된 학생들이 삭제되었습니다.');
-            
-            // Auto-save data
-            autoSave();
-        });
-
-        addPointBtn.addEventListener('click', () => {
-            const selectionMode = document.querySelector('input[name="selectionMode"]:checked').value;
-            const category = document.getElementById('pointCategory').value;
-            const description = document.getElementById('pointDescription').value.trim();
-
-            if (!category) {
-                alert('카테고리를 선택해주세요.');
-                return;
-            }
-
-            const key = `${currentYear}-${currentSubject}`;
-            let studentsToUpdate = [];
-            let pointValue = 0;
-
-            if (selectionMode === 'single') {
-                const selectedStudent = studentSelect.value;
-                pointValue = parseInt(document.getElementById('pointValue').value);
-                
-                if (!selectedStudent || !pointValue) {
-                    alert('학생과 포인트를 모두 선택/입력해주세요.');
-                    return;
-                }
-
-                const student = classData[key][currentClass].find(s => s.name === selectedStudent);
-                if (!student) {
-                    alert('해당 학생을 찾을 수 없습니다.');
-                    return;
-                }
-                studentsToUpdate = [student];
-            } else {
-                pointValue = parseInt(document.getElementById('pointValueMultiple').value);
-                const checkedBoxes = document.querySelectorAll('#studentCheckboxList input[type="checkbox"]:checked');
-                
-                if (checkedBoxes.length === 0 || !pointValue) {
-                    alert('학생을 선택하고 포인트를 입력해주세요.');
-                    return;
-                }
-
-                checkedBoxes.forEach(checkbox => {
-                    const studentName = checkbox.value;
-                    const student = classData[key][currentClass].find(s => s.name === studentName);
-                    if (student) {
-                        studentsToUpdate.push(student);
+        // Firebase 데이터 함수들
+        async function findStudent(year, subject, className, number, name) {
+            try {
+                if (window.db && window.doc && window.getDoc) {
+                    const docRef = window.doc(window.db, 'classes', `${year}-${subject}-${className}`);
+                    const docSnap = await window.getDoc(docRef);
+                    
+                    if (docSnap.exists()) {
+                        const students = docSnap.data().students || [];
+                        return students.find(s => s.number === number && s.name === name);
                     }
-                });
+                }
+                return null;
+            } catch (error) {
+                console.error('학생 찾기 오류:', error);
+                return null;
             }
+        }
 
-            // Add points to selected students and check for rewards
-            let celebrationStudents = [];
-            studentsToUpdate.forEach(student => {
-                const oldPoints = student.totalPoints;
-                const pointEntry = {
-                    id: Date.now() + Math.random(),
-                    value: pointValue,
-                    category: category,
-                    description: description,
-                    date: new Date().toLocaleDateString('ko-KR')
-                };
-
-                student.points.push(pointEntry);
-                student.totalPoints += pointValue;
-                
-                // Check if student reached a new reward milestone
-                const oldMilestone = Math.floor(oldPoints / rewardSettings.interval) * rewardSettings.interval;
-                const newMilestone = Math.floor(student.totalPoints / rewardSettings.interval) * rewardSettings.interval;
-                
-                if (newMilestone > oldMilestone && student.totalPoints >= rewardSettings.interval) {
-                    celebrationStudents.push({
-                        student: student,
-                        milestone: newMilestone
-                    });
+        async function loadYearSubjectsForStudent() {
+            // 학년도 및 수업 로드 로직
+            const yearSelect = document.getElementById('studentYearSelect');
+            const subjectSelect = document.getElementById('studentSubjectSelect');
+            
+            yearSelect.innerHTML = '<option value="">학년도 선택</option>';
+            subjectSelect.innerHTML = '<option value="">수업 선택</option>';
+            
+            // 기본값 추가 (실제로는 Firebase에서 로드)
+            const currentYear = new Date().getFullYear();
+            yearSelect.innerHTML += `<option value="${currentYear}">${currentYear}</option>`;
+            
+            yearSelect.addEventListener('change', () => {
+                const selectedYear = yearSelect.value;
+                subjectSelect.innerHTML = '<option value="">수업 선택</option>';
+                if (selectedYear) {
+                    subjectSelect.innerHTML += '<option value="영어">영어</option>';
                 }
             });
-            
-            // Show celebration if any student reached a milestone
-            if (celebrationStudents.length > 0) {
-                showCelebration(celebrationStudents);
-            }
-
-            // Clear form
-            if (selectionMode === 'single') {
-                studentSelect.value = '';
-                document.getElementById('pointValue').value = '';
-            } else {
-                document.querySelectorAll('#studentCheckboxList input[type="checkbox"]').forEach(cb => {
-                    cb.checked = false;
-                });
-                document.getElementById('pointValueMultiple').value = '';
-            }
-            document.getElementById('pointCategory').value = '';
-            document.getElementById('pointDescription').value = '';
-
-            const studentNames = studentsToUpdate.map(s => s.name).join(', ');
-            alert(`${studentNames}에게 ${pointValue}포인트가 추가되었습니다!`);
-            
-            // Show updated students display
-            showUpdatedStudents(studentsToUpdate);
-            
-            // Update statistics if panel is visible
-            if (!statisticsPanel.classList.contains('hidden')) {
-                displayTopStudentsRanking();
-            }
-            
-            // Auto-save data
-            autoSave();
-        });
-
-        // Statistics event listeners
-        showStatsBtn.addEventListener('click', () => {
-            statisticsPanel.classList.remove('hidden');
-            displayTopStudentsRanking();
-        });
-
-        hideStatsBtn.addEventListener('click', () => {
-            statisticsPanel.classList.add('hidden');
-        });
-
-        // Excel backup event listeners
-        backupExcelAllBtn.addEventListener('click', () => {
-            backupExcelAll();
-        });
-
-        backupExcelCurrentBtn.addEventListener('click', () => {
-            backupExcelCurrent();
-        });
-
-        function updateYearSelect() {
-            yearSelect.innerHTML = '<option value="">학년도 선택</option>';
-            Object.keys(yearSubjects).forEach(year => {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                yearSelect.appendChild(option);
-            });
         }
 
-        function updateSubjectSelect() {
-            subjectSelect.innerHTML = '<option value="">수업 선택</option>';
-            if (currentYear && yearSubjects[currentYear]) {
-                yearSubjects[currentYear].forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject;
-                    option.textContent = subject;
-                    subjectSelect.appendChild(option);
-                });
-            }
-        }
-
-        function updateStudentYearSelect() {
-            studentYearSelect.innerHTML = '<option value="">학년도 선택</option>';
-            Object.keys(yearSubjects).forEach(year => {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                studentYearSelect.appendChild(option);
-            });
-        }
-
-        function updateStudentSubjectSelect() {
-            studentSubjectSelect.innerHTML = '<option value="">수업 선택</option>';
-            const selectedYear = studentYearSelect.value;
-            if (selectedYear && yearSubjects[selectedYear]) {
-                yearSubjects[selectedYear].forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject;
-                    option.textContent = subject;
-                    studentSubjectSelect.appendChild(option);
-                });
-            }
-        }
-
-        function resetStudentSelects() {
-            studentYearSelect.value = '';
-            studentSubjectSelect.value = '';
-            studentClassSelect.value = '';
-            studentNumber.value = '';
-            studentName.value = '';
-        }
-
+        // 학생 뷰 표시
         function showStudentView() {
-            // Hide all other sections
-            const sections = ['pointsSection', 'detailsSection', 'studentsSection', 'rewardsSection', 'settingsSection'];
-            sections.forEach(sectionId => {
-                const section = document.getElementById(sectionId);
-                if (section) section.classList.add('hidden');
-            });
+            if (!currentStudent) return;
             
-            // Show student view section
-            studentViewSection.classList.remove('hidden');
+            const studentIndex = Math.floor(Math.random() * avatars.length);
+            const totalPoints = currentStudent.points?.reduce((sum, p) => sum + p.value, 0) || 0;
             
-            // Display student information
-            const student = currentStudent;
-            const studentIndex = Math.floor(Math.random() * avatars.length); // Random avatar for student view
-            
-            studentInfo.innerHTML = `
+            document.getElementById('studentInfo').innerHTML = `
                 <div class="mb-6">${avatars[studentIndex]}</div>
-                <h3 class="text-2xl font-bold text-green-600 mb-4">${student.number}번 ${student.name}</h3>
-                <div class="bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-full px-8 py-4 font-bold text-3xl mb-6">
-                    ⭐ ${student.totalPoints}점
+                <h3 class="text-2xl font-bold text-green-600 mb-4">${currentStudent.number}번 ${currentStudent.name}</h3>
+                <div class="bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-full px-8 py-4 font-bold text-3xl mb-6 point-animation">
+                    ⭐ ${totalPoints}점
                 </div>
                 
                 <div class="text-left max-w-2xl mx-auto">
                     <h4 class="text-xl font-bold text-purple-600 mb-4">📋 포인트 내역</h4>
-                    ${student.points.length === 0 ? 
+                    ${!currentStudent.points || currentStudent.points.length === 0 ? 
                         '<p class="text-gray-500 text-center py-8">아직 포인트가 없습니다.</p>' :
                         `<div class="space-y-3 max-h-96 overflow-y-auto">
-                            ${student.points.map(point => `
-                                <div class="bg-gray-50 rounded-xl p-4">
+                            ${currentStudent.points.map(point => `
+                                <div class="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors">
                                     <div class="flex justify-between items-center mb-2">
                                         <span class="font-semibold text-purple-600">${point.category}</span>
                                         <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold">+${point.value}점</span>
                                     </div>
                                     ${point.description ? `<p class="text-gray-600 mb-2">${point.description}</p>` : ''}
-                                    <p class="text-gray-400 text-sm">${point.date}</p>
+                                    <p class="text-gray-400 text-sm">${new Date(point.date).toLocaleString('ko-KR')}</p>
                                 </div>
                             `).join('')}
                         </div>`
                     }
                 </div>
-                
-                <button onclick="exitStudentView()" class="mt-8 bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-xl font-semibold transition-colors">
-                    🔙 돌아가기
-                </button>
             `;
         }
 
-        function exitStudentView() {
-            isStudentView = false;
-            currentStudent = null;
-            studentViewSection.classList.add('hidden');
-            showSection('points');
-        }
-
-        function updateStudentSelect() {
-            studentSelect.innerHTML = '<option value="">학생 선택</option>';
-            if (currentYear && currentSubject && currentClass) {
-                const key = `${currentYear}-${currentSubject}`;
-                if (classData[key] && classData[key][currentClass]) {
-                    classData[key][currentClass].forEach(student => {
-                        const option = document.createElement('option');
-                        option.value = student.name;
-                        option.textContent = `${student.number}번 ${student.name}`;
-                        studentSelect.appendChild(option);
-                    });
-                }
+        // 학생용 실시간 업데이트 설정
+        function setupStudentRealTimeUpdates() {
+            if (!window.db || !currentStudent) return;
+            
+            try {
+                const docRef = window.doc(window.db, 'classes', `${currentYear}-${currentSubject}-${currentClass}`);
+                const unsubscribe = window.onSnapshot(docRef, (doc) => {
+                    if (doc.exists()) {
+                        const data = doc.data();
+                        const students = data.students || [];
+                        const updatedStudent = students.find(s => s.number === currentStudent.number && s.name === currentStudent.name);
+                        
+                        if (updatedStudent) {
+                            currentStudent = updatedStudent;
+                            showStudentView();
+                            updateStudentRanking();
+                        }
+                    }
+                });
+                
+                unsubscribeListeners.push(unsubscribe);
+            } catch (error) {
+                console.error('실시간 업데이트 설정 오류:', error);
             }
         }
 
-        function updateStudentCheckboxList(searchTerm = '') {
-            const checkboxList = document.getElementById('studentCheckboxList');
-            checkboxList.innerHTML = '';
+        // 학생 랭킹 업데이트
+        function updateStudentRanking() {
+            // 랭킹 로직 구현
+            const rankingDiv = document.getElementById('studentRanking');
+            if (rankingDiv) {
+                rankingDiv.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="text-2xl font-bold text-orange-600">🏆 내 순위: 계산 중...</div>
+                        <p class="text-gray-500 mt-2">실시간으로 업데이트됩니다</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 앱 초기화
+        function initializeApp() {
+            // 메뉴 이벤트 리스너 설정
+            setupMenuListeners();
             
-            if (currentYear && currentSubject && currentClass) {
-                const key = `${currentYear}-${currentSubject}`;
-                if (classData[key] && classData[key][currentClass]) {
-                    let filteredStudents = classData[key][currentClass];
+            // 모바일 메뉴 설정
+            setupMobileMenu();
+            
+            // 포인트 관리 설정
+            setupPointManagement();
+            
+            // 실시간 데이터 로드
+            if (isTeacher) {
+                loadYearSubjects();
+            }
+        }
+
+        // 메뉴 리스너 설정
+        function setupMenuListeners() {
+            const menuItems = [
+                { id: 'menuPoints', section: 'points' },
+                { id: 'menuDashboard', section: 'dashboard' },
+                { id: 'menuDetails', section: 'details' },
+                { id: 'menuRewards', section: 'rewards' },
+                { id: 'menuStudents', section: 'students' },
+                { id: 'menuSettings', section: 'settings' }
+            ];
+
+            menuItems.forEach(item => {
+                const element = document.getElementById(item.id);
+                if (element) {
+                    element.addEventListener('click', () => showSection(item.section));
+                }
+            });
+        }
+
+        // 섹션 표시
+        function showSection(section) {
+            if (!isTeacher) return;
+            
+            // 모든 섹션 숨기기
+            const sections = ['pointsSection', 'dashboardSection', 'detailsSection', 'rewardsSection', 'studentsSection', 'settingsSection'];
+            sections.forEach(sectionId => {
+                const sectionEl = document.getElementById(sectionId);
+                if (sectionEl) sectionEl.classList.add('hidden');
+            });
+            
+            document.getElementById('welcomeMessage').classList.add('hidden');
+            
+            // 메뉴 활성화 상태 제거
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 선택된 섹션 표시
+            const sectionEl = document.getElementById(section + 'Section');
+            const menuEl = document.getElementById('menu' + section.charAt(0).toUpperCase() + section.slice(1));
+            
+            if (sectionEl) sectionEl.classList.remove('hidden');
+            if (menuEl) menuEl.classList.add('active');
+            
+            currentView = section;
+            
+            // 섹션별 초기화
+            if (section === 'dashboard') {
+                initializeDashboard();
+            } else if (section === 'details') {
+                loadStudentDetails();
+            }
+        }
+
+        // 모바일 메뉴 설정
+        function setupMobileMenu() {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('-translate-x-full');
+                    sidebarOverlay.classList.toggle('hidden');
+                });
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', () => {
+                    sidebar.classList.add('-translate-x-full');
+                    sidebarOverlay.classList.add('hidden');
+                });
+            }
+        }
+
+        // 포인트 관리 설정
+        function setupPointManagement() {
+            // 선택 모드 토글
+            const selectionModeRadios = document.querySelectorAll('input[name="selectionMode"]');
+            selectionModeRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const singleMode = document.getElementById('singleMode');
+                    const multipleMode = document.getElementById('multipleMode');
                     
-                    // Filter students based on search term
-                    if (searchTerm.trim()) {
-                        filteredStudents = classData[key][currentClass].filter(student => {
-                            const searchLower = searchTerm.toLowerCase();
-                            return student.name.toLowerCase().includes(searchLower) || 
-                                   student.number.toString().includes(searchTerm);
-                        });
+                    if (e.target.value === 'single') {
+                        singleMode.classList.remove('hidden');
+                        multipleMode.classList.add('hidden');
+                    } else {
+                        singleMode.classList.add('hidden');
+                        multipleMode.classList.remove('hidden');
                     }
+                });
+            });
+
+            // 빠른 포인트 버튼
+            document.querySelectorAll('.quick-point-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const points = e.target.dataset.points;
+                    const pointValueInput = document.getElementById('pointValue');
+                    const pointValueMultipleInput = document.getElementById('pointValueMultiple');
                     
-                    if (filteredStudents.length === 0 && searchTerm.trim()) {
-                        checkboxList.innerHTML = '<div class="text-gray-500 text-center py-4 text-sm">검색 결과가 없습니다.</div>';
+                    if (pointValueInput && !pointValueInput.closest('#multipleMode').classList.contains('hidden')) {
+                        pointValueInput.value = points;
+                    }
+                    if (pointValueMultipleInput && !pointValueMultipleInput.closest('#multipleMode').classList.contains('hidden')) {
+                        pointValueMultipleInput.value = points;
+                    }
+                });
+            });
+
+            // 포인트 추가 버튼
+            const addPointBtn = document.getElementById('addPointBtn');
+            if (addPointBtn) {
+                addPointBtn.addEventListener('click', addPoints);
+            }
+        }
+
+        // 포인트 추가 함수
+        async function addPoints() {
+            const selectionMode = document.querySelector('input[name="selectionMode"]:checked').value;
+            const category = document.getElementById('pointCategory').value;
+            const description = document.getElementById('pointDescription').value;
+            
+            if (!category) {
+                showNotification('❌ 카테고리를 선택해주세요', 'error');
+                return;
+            }
+
+            try {
+                if (selectionMode === 'single') {
+                    const studentId = document.getElementById('studentSelect').value;
+                    const pointValue = parseInt(document.getElementById('pointValue').value);
+                    
+                    if (!studentId || !pointValue) {
+                        showNotification('❌ 학생과 포인트를 선택해주세요', 'error');
                         return;
                     }
                     
-                    filteredStudents.forEach(student => {
-                        const div = document.createElement('div');
-                        div.className = 'flex items-center space-x-2 mb-2 student-checkbox-item';
-                        div.innerHTML = `
-                            <input type="checkbox" value="${student.name}" id="student-${student.number}" class="rounded">
-                            <label for="student-${student.number}" class="text-sm font-medium">${student.number}번 ${student.name}</label>
-                        `;
-                        checkboxList.appendChild(div);
-                    });
-                }
-            }
-        }
-
-        function showCelebration(celebrationStudents) {
-            // Create celebration modal
-            const celebrationModal = document.createElement('div');
-            celebrationModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-            celebrationModal.innerHTML = `
-                <div class="bg-white rounded-2xl p-8 cute-shadow max-w-2xl w-full mx-4 text-center relative overflow-hidden">
-                    <div class="celebration-confetti absolute inset-0 pointer-events-none"></div>
-                    <div class="relative z-10">
-                        <div class="text-6xl mb-4 animate-bounce">🎉</div>
-                        <h2 class="text-3xl font-bold text-purple-600 mb-4">축하합니다!</h2>
-                        <div class="space-y-4">
-                            ${celebrationStudents.map(({student, milestone}) => `
-                                <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-xl p-4 animate-pulse">
-                                    <div class="text-xl font-bold">${student.name} (${student.number}번)</div>
-                                    <div class="text-lg">🎁 ${milestone}점 달성! 보상을 받을 수 있어요!</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <button onclick="closeCelebration()" class="mt-6 bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-xl font-semibold transition-colors">
-                            확인
-                        </button>
-                    </div>
-                </div>
-                
-                <style>
-                    .celebration-confetti::before {
-                        content: '🎊🎉✨⭐🌟💫🎈🎁';
-                        position: absolute;
-                        top: -50px;
-                        left: 0;
-                        right: 0;
-                        font-size: 2rem;
-                        animation: confetti-fall 3s ease-in-out infinite;
-                        letter-spacing: 2rem;
+                    await addPointToStudent(studentId, pointValue, category, description);
+                } else {
+                    const selectedStudents = Array.from(document.querySelectorAll('#studentCheckboxList input:checked'))
+                        .map(cb => cb.value);
+                    const pointValue = parseInt(document.getElementById('pointValueMultiple').value);
+                    
+                    if (selectedStudents.length === 0 || !pointValue) {
+                        showNotification('❌ 학생들과 포인트를 선택해주세요', 'error');
+                        return;
                     }
                     
-                    @keyframes confetti-fall {
-                        0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
-                        100% { transform: translateY(400px) rotate(360deg); opacity: 0; }
+                    for (const studentId of selectedStudents) {
+                        await addPointToStudent(studentId, pointValue, category, description);
                     }
-                    
-                    @keyframes bounce {
-                        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-                        40% { transform: translateY(-30px); }
-                        60% { transform: translateY(-15px); }
-                    }
-                    
-                    .animate-bounce {
-                        animation: bounce 2s infinite;
-                    }
-                    
-                    .animate-pulse {
-                        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-                    }
-                    
-                    @keyframes pulse {
-                        0%, 100% { opacity: 1; }
-                        50% { opacity: .8; }
-                    }
-                </style>
-            `;
-            
-            document.body.appendChild(celebrationModal);
-            
-            // Auto-close after 5 seconds
-            setTimeout(() => {
-                if (document.body.contains(celebrationModal)) {
-                    document.body.removeChild(celebrationModal);
-                }
-            }, 5000);
-        }
-        
-        function closeCelebration() {
-            const modal = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
-            if (modal) {
-                document.body.removeChild(modal);
-            }
-        }
-
-        function showUpdatedStudents(studentsToUpdate) {
-            const pointAdditionResult = document.getElementById('pointAdditionResult');
-            const updatedStudentsDisplay = document.getElementById('updatedStudentsDisplay');
-            
-            updatedStudentsDisplay.innerHTML = studentsToUpdate.map((student, index) => {
-                const studentIndex = classData[`${currentYear}-${currentSubject}`][currentClass].findIndex(s => s.name === student.name);
-                const lastPoint = student.points[student.points.length - 1];
-                return `
-                    <div class="bg-white rounded-2xl cute-shadow p-6 hover:shadow-2xl transition-all duration-300 border-2 border-green-400">
-                        <div class="text-center">
-                            <div class="mb-3">${avatars[studentIndex % avatars.length]}</div>
-                            <div class="text-lg font-bold text-purple-600">${student.number}번</div>
-                            <h3 class="text-xl font-bold text-purple-600 mb-3">${student.name}</h3>
-                            <div class="bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-full px-4 py-2 font-bold text-lg mb-2">
-                                ⭐ ${student.totalPoints}점
-                            </div>
-                            <div class="text-sm text-green-600 font-bold mb-3">
-                                ✨ 포인트 추가됨!
-                            </div>
-                            <button onclick="deleteLastPoint('${student.name}', ${lastPoint.id})" 
-                                    class="bg-red-400 hover:bg-red-500 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors">
-                                🗑️ 방금 추가한 포인트 삭제
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            pointAdditionResult.classList.remove('hidden');
-        }
-
-        function displayRewards() {
-            if (!currentYear || !currentSubject || !currentClass) return;
-
-            const key = `${currentYear}-${currentSubject}`;
-            const students = classData[key] ? classData[key][currentClass] : [];
-            if (students.length === 0) {
-                document.getElementById('rewardsDisplay').innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">학생 명단을 업로드해주세요.</div>';
-                return;
-            }
-            
-            document.getElementById('rewardsDisplay').innerHTML = students.map((student, index) => {
-                // Initialize rewards object if it doesn't exist
-                if (!student.rewards) {
-                    student.rewards = {};
                 }
                 
-                // Calculate available milestones based on settings
-                const milestones = [];
-                for (let i = rewardSettings.interval; i <= Math.max(rewardSettings.maxPoints, Math.floor(student.totalPoints / rewardSettings.interval) * rewardSettings.interval + rewardSettings.interval); i += rewardSettings.interval) {
-                    milestones.push(i);
-                }
+                showNotification('🎉 포인트가 성공적으로 추가되었습니다!', 'success');
                 
-                return `
-                    <div class="bg-white rounded-2xl cute-shadow p-6 hover:shadow-2xl transition-all duration-300">
-                        <div class="text-center mb-4">
-                            <div class="mb-3">${avatars[index % avatars.length]}</div>
-                            <div class="text-lg font-bold text-purple-600">${student.number}번</div>
-                            <h3 class="text-xl font-bold text-purple-600 mb-3">${student.name}</h3>
-                            <div class="bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-full px-4 py-2 font-bold text-lg mb-4">
-                                ⭐ ${student.totalPoints}점
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-2">
-                            <h4 class="font-bold text-purple-600 text-sm mb-3">🎁 보상 현황 (${rewardSettings.interval}점마다)</h4>
-                            ${milestones.map(milestone => {
-                                const isEarned = student.totalPoints >= milestone;
-                                const isRewarded = student.rewards[milestone] || false;
-                                
-                                return `
-                                    <div class="flex items-center justify-between p-2 rounded-lg ${isEarned ? 'bg-green-50' : 'bg-gray-50'}">
-                                        <span class="text-sm font-medium ${isEarned ? 'text-green-700' : 'text-gray-500'}">
-                                            ${milestone}점 달성
-                                        </span>
-                                        <div class="flex items-center space-x-2">
-                                            ${isEarned ? 
-                                                `<label class="flex items-center cursor-pointer">
-                                                    <input type="checkbox" 
-                                                           ${isRewarded ? 'checked' : ''} 
-                                                           onchange="toggleReward('${student.name}', ${milestone})"
-                                                           class="mr-1 rounded">
-                                                    <span class="text-xs ${isRewarded ? 'text-green-600 font-bold' : 'text-gray-600'}">
-                                                        ${isRewarded ? '✅ 지급완료' : '🎁 보상대기'}
-                                                    </span>
-                                                </label>` :
-                                                '<span class="text-xs text-gray-400">미달성</span>'
-                                            }
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                        
-                        <div class="mt-4 pt-3 border-t border-gray-200">
-                            <div class="text-xs text-gray-500 text-center">
-                                보상 지급: ${Object.values(student.rewards).filter(r => r).length}개 / 
-                                달성 가능: ${milestones.filter(m => student.totalPoints >= m).length}개
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function toggleReward(studentName, milestone) {
-            const key = `${currentYear}-${currentSubject}`;
-            const student = classData[key][currentClass].find(s => s.name === studentName);
-            
-            if (!student.rewards) {
-                student.rewards = {};
+                // 폼 초기화
+                document.getElementById('pointDescription').value = '';
+                document.getElementById('pointValue').value = '';
+                document.getElementById('pointValueMultiple').value = '';
+                
+            } catch (error) {
+                console.error('포인트 추가 오류:', error);
+                showNotification('❌ 포인트 추가 중 오류가 발생했습니다', 'error');
             }
-            
-            student.rewards[milestone] = !student.rewards[milestone];
-            
-            // Auto-save data
-            autoSave();
-            
-            // Refresh display
-            displayRewards();
         }
 
-        function displaySavedYearSubjects() {
-            if (Object.keys(yearSubjects).length === 0) {
-                savedYearSubjects.innerHTML = '<div class="text-center text-gray-500 py-8">저장된 학년도/수업이 없습니다.</div>';
-                return;
-            }
-            
-            savedYearSubjects.innerHTML = Object.keys(yearSubjects).map(year => `
-                <div class="bg-gray-50 rounded-xl p-4 mb-4">
-                    <h3 class="font-bold text-purple-600 mb-2">${year}년도</h3>
-                    <div class="space-y-1">
-                        ${yearSubjects[year].map(subject => `
-                            <div class="flex justify-between items-center bg-white rounded-lg px-3 py-2">
-                                <span>${subject}</span>
-                                <button onclick="deleteYearSubject('${year}', '${subject}')" 
-                                        class="bg-red-400 hover:bg-red-500 text-white px-2 py-1 rounded text-sm">
-                                    삭제
-                                </button>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function updateStorageInfo() {
-            // Calculate total data size
-            const allData = {
-                classData: classData,
-                yearSubjects: yearSubjects,
-                rewardSettings: rewardSettings
+        // 개별 학생에게 포인트 추가
+        async function addPointToStudent(studentId, pointValue, category, description) {
+            // Firebase 또는 로컬 저장소에 포인트 추가 로직
+            const pointData = {
+                value: pointValue,
+                category: category,
+                description: description,
+                date: new Date().toISOString(),
+                addedBy: currentUser?.email || 'teacher'
             };
             
-            const dataString = JSON.stringify(allData);
-            const dataSizeBytes = new Blob([dataString]).size;
-            const dataSizeKB = (dataSizeBytes / 1024).toFixed(2);
-            const dataSizeMB = (dataSizeBytes / (1024 * 1024)).toFixed(3);
+            // 실제 구현에서는 Firebase에 저장
+            console.log('포인트 추가:', studentId, pointData);
+        }
+
+        // 학년도/수업 로드
+        async function loadYearSubjects() {
+            // Firebase에서 학년도/수업 데이터 로드
+            const yearSelect = document.getElementById('yearSelect');
+            const subjectSelect = document.getElementById('subjectSelect');
             
-            // Calculate statistics
-            let totalStudents = 0;
-            let totalPointRecords = 0;
-            
-            Object.keys(classData).forEach(key => {
-                Object.keys(classData[key]).forEach(className => {
-                    totalStudents += classData[key][className].length;
-                    classData[key][className].forEach(student => {
-                        totalPointRecords += student.points.length;
-                    });
+            if (yearSelect) {
+                yearSelect.innerHTML = '<option value="">학년도 선택</option>';
+                // 기본값 추가
+                const currentYear = new Date().getFullYear();
+                yearSelect.innerHTML += `<option value="${currentYear}">${currentYear}</option>`;
+                
+                yearSelect.addEventListener('change', (e) => {
+                    currentYear = e.target.value;
+                    loadSubjects();
                 });
-            });
-            
-            // Update UI
-            document.getElementById('totalDataSize').textContent = 
-                dataSizeBytes < 1024 ? `${dataSizeBytes} bytes` :
-                dataSizeBytes < 1024 * 1024 ? `${dataSizeKB} KB` :
-                `${dataSizeMB} MB`;
-            
-            document.getElementById('totalStudents').textContent = `${totalStudents}명`;
-            document.getElementById('totalPoints').textContent = `${totalPointRecords}개`;
+            }
         }
 
-        function backupExcelAll() {
-            const userName = window.currentUser ? (window.currentUser.displayName || window.currentUser.email) : 'Teacher';
-            
-            if (Object.keys(classData).length === 0) {
-                alert('백업할 데이터가 없습니다.');
-                return;
-            }
-            
-            // Create workbook
-            const wb = XLSX.utils.book_new();
-            
-            // Create summary sheet
-            const summaryData = [
-                ['교사', userName],
-                ['백업 날짜', new Date().toLocaleDateString('ko-KR')],
-                ['백업 시간', new Date().toLocaleTimeString('ko-KR')],
-                [''],
-                ['학년도', '수업명', '반', '학생 수', '총 포인트 기록']
-            ];
-            
-            let totalStudents = 0;
-            let totalPointRecords = 0;
-            
-            Object.keys(classData).forEach(key => {
-                const [year, subject] = key.split('-');
-                Object.keys(classData[key]).forEach(className => {
-                    const students = classData[key][className];
-                    if (students.length > 0) {
-                        const classPointRecords = students.reduce((sum, student) => sum + student.points.length, 0);
-                        summaryData.push([year, subject, className, students.length, classPointRecords]);
-                        totalStudents += students.length;
-                        totalPointRecords += classPointRecords;
-                    }
+        // 수업 로드
+        function loadSubjects() {
+            const subjectSelect = document.getElementById('subjectSelect');
+            if (subjectSelect) {
+                subjectSelect.innerHTML = '<option value="">수업 선택</option>';
+                if (currentYear) {
+                    subjectSelect.innerHTML += '<option value="영어">영어</option>';
+                }
+                
+                subjectSelect.addEventListener('change', (e) => {
+                    currentSubject = e.target.value;
                 });
-            });
-            
-            summaryData.push(['', '', '총계', totalStudents, totalPointRecords]);
-            
-            const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
-            XLSX.utils.book_append_sheet(wb, summaryWs, '백업 요약');
-            
-            // Create detailed sheets for each class
-            Object.keys(classData).forEach(key => {
-                const [year, subject] = key.split('-');
-                Object.keys(classData[key]).forEach(className => {
-                    const students = classData[key][className];
-                    if (students.length === 0) return;
-                    
-                    const sheetData = [
-                        [`${year}년도 ${subject} ${className} 포인트 현황`],
-                        ['백업 날짜: ' + new Date().toLocaleDateString('ko-KR')],
-                        [''],
-                        ['번호', '이름', '총점', '포인트 내역 (날짜 | 카테고리 | 점수 | 설명)']
-                    ];
-                    
-                    students.forEach(student => {
-                        const pointDetails = student.points.map(point => 
-                            `${point.date} | ${point.category} | +${point.value}점 | ${point.description || '없음'}`
-                        ).join(' / ');
-                        
-                        sheetData.push([
-                            student.number,
-                            student.name,
-                            student.totalPoints,
-                            pointDetails || '포인트 없음'
-                        ]);
-                    });
-                    
-                    // Add statistics
-                    sheetData.push(['']);
-                    sheetData.push(['통계']);
-                    sheetData.push(['총 학생 수', students.length]);
-                    sheetData.push(['평균 점수', (students.reduce((sum, s) => sum + s.totalPoints, 0) / students.length).toFixed(1)]);
-                    sheetData.push(['최고 점수', Math.max(...students.map(s => s.totalPoints))]);
-                    sheetData.push(['최저 점수', Math.min(...students.map(s => s.totalPoints))]);
-                    
-                    const ws = XLSX.utils.aoa_to_sheet(sheetData);
-                    
-                    // Set column widths
-                    ws['!cols'] = [
-                        { width: 8 },   // 번호
-                        { width: 12 },  // 이름
-                        { width: 10 },  // 총점
-                        { width: 80 }   // 포인트 내역
-                    ];
-                    
-                    const sheetName = `${year}-${subject}-${className}`.substring(0, 31);
-                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-                });
-            });
-            
-            // Save file
-            const fileName = `${userName}-전체포인트현황-${new Date().toISOString().split('T')[0]}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            
-            alert(`전체 데이터가 엑셀 파일로 백업되었습니다!\n파일명: ${fileName}`);
+            }
         }
 
-        function backupExcelCurrent() {
-            const userName = window.currentUser ? (window.currentUser.displayName || window.currentUser.email) : 'Teacher';
+        // 대시보드 초기화
+        function initializeDashboard() {
+            // 실시간 통계 업데이트
+            updateDashboardStats();
             
-            if (!currentYear || !currentSubject || !currentClass) {
-                alert('학년도, 수업, 반을 모두 선택해주세요.');
-                return;
-            }
-            
-            const key = `${currentYear}-${currentSubject}`;
-            const students = classData[key] ? classData[key][currentClass] : [];
-            
-            if (students.length === 0) {
-                alert('현재 반에 학생 데이터가 없습니다.');
-                return;
-            }
-            
-            // Create workbook
-            const wb = XLSX.utils.book_new();
-            
-            // Create main sheet
-            const sheetData = [
-                [`${currentYear}년도 ${currentSubject} ${currentClass} 포인트 현황`],
-                ['백업 날짜: ' + new Date().toLocaleDateString('ko-KR')],
-                ['교사: ' + userName],
-                [''],
-                ['번호', '이름', '총점', '포인트 내역']
-            ];
-            
-            students.forEach(student => {
-                const pointDetails = student.points.map(point => 
-                    `${point.date} | ${point.category} | +${point.value}점 | ${point.description || '없음'}`
-                ).join(' / ');
-                
-                sheetData.push([
-                    student.number,
-                    student.name,
-                    student.totalPoints,
-                    pointDetails || '포인트 없음'
-                ]);
-            });
-            
-            // Add statistics
-            sheetData.push(['']);
-            sheetData.push(['=== 통계 ===']);
-            sheetData.push(['총 학생 수', students.length]);
-            sheetData.push(['평균 점수', (students.reduce((sum, s) => sum + s.totalPoints, 0) / students.length).toFixed(1)]);
-            sheetData.push(['최고 점수', Math.max(...students.map(s => s.totalPoints))]);
-            sheetData.push(['최저 점수', Math.min(...students.map(s => s.totalPoints))]);
-            
-            const ws1 = XLSX.utils.aoa_to_sheet(sheetData);
-            
-            // Set column widths
-            ws1['!cols'] = [
-                { width: 8 },   // 번호
-                { width: 12 },  // 이름
-                { width: 10 },  // 총점
-                { width: 80 }   // 포인트 내역
-            ];
-            
-            XLSX.utils.book_append_sheet(wb, ws1, '포인트 현황');
-            
-            // Save file
-            const fileName = `${userName}-${currentYear}-${currentSubject}-${currentClass}-${new Date().toISOString().split('T')[0]}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            
-            alert(`${currentClass} 데이터가 엑셀 파일로 백업되었습니다!\n파일명: ${fileName}`);
+            // 차트 초기화 (Chart.js 등 사용)
+            // initializeCharts();
         }
 
-        function displayStudentDetails() {
-            if (!currentYear || !currentSubject || !currentClass) return;
+        // 대시보드 통계 업데이트
+        function updateDashboardStats() {
+            // 실제 데이터로 업데이트
+            document.getElementById('dashTotalStudents').textContent = '0';
+            document.getElementById('dashTotalPoints').textContent = '0';
+            document.getElementById('dashAvgPoints').textContent = '0';
+            document.getElementById('dashTodayActivity').textContent = '0';
+        }
 
-            const key = `${currentYear}-${currentSubject}`;
-            const students = classData[key] ? classData[key][currentClass] : [];
-            if (students.length === 0) {
-                document.getElementById('studentDetails').innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">학생 명단을 업로드해주세요.</div>';
-                return;
-            }
-            
-            document.getElementById('studentDetails').innerHTML = students.map((student, index) => `
-                <div class="bg-white rounded-2xl cute-shadow p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer" onclick="toggleStudentDetails('${student.name}')">
-                    <div class="text-center mb-4">
-                        <div class="mb-3 hover:scale-110 transition-transform">${avatars[index % avatars.length]}</div>
-                        <div class="text-lg font-bold text-purple-600">${student.number}번</div>
-                        <h3 class="text-2xl font-bold text-purple-600 mb-3 hover:text-indigo-600 transition-colors">${student.name}</h3>
-                        <div class="bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-full px-6 py-3 font-bold text-2xl shadow-lg">
-                            ⭐ ${student.totalPoints}점
-                        </div>
-                        <div class="text-sm text-gray-500 mt-2">클릭하여 상세보기</div>
+        // 학생 상세 정보 로드
+        function loadStudentDetails() {
+            const studentDetails = document.getElementById('studentDetails');
+            if (studentDetails) {
+                studentDetails.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <div class="text-4xl mb-4">📊</div>
+                        <h3 class="text-xl font-bold text-gray-600">학생 데이터를 로드하는 중...</h3>
+                        <p class="text-gray-500">잠시만 기다려주세요</p>
                     </div>
-                    
-                    <div id="details-${student.name}" class="hidden text-xs space-y-2 max-h-40 overflow-y-auto border-t pt-3">
-                        ${student.points.length === 0 ? 
-                            '<p class="text-gray-500 text-center py-4">포인트 없음</p>' :
-                            student.points.map(point => `
-                                <div class="bg-gray-50 rounded-lg p-2">
-                                    <div class="flex justify-between items-center mb-1">
-                                        <span class="font-semibold text-purple-600 text-xs">${point.category}</span>
-                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-bold">+${point.value}</span>
-                                    </div>
-                                    ${point.description ? `<p class="text-gray-600 text-xs mb-1">${point.description}</p>` : ''}
-                                    <p class="text-gray-400 text-xs">${point.date}</p>
-                                    <button onclick="deletePoint('${student.name}', ${point.id})" 
-                                            class="bg-red-400 hover:bg-red-500 text-white px-2 py-1 rounded text-xs mt-1">
-                                        삭제
-                                    </button>
-                                </div>
-                            `).join('')
-                        }
-                    </div>
-                </div>
-            `).join('');
-            
-            // Update statistics if panel is visible
-            if (!statisticsPanel.classList.contains('hidden')) {
-                displayTopStudentsRanking();
+                `;
             }
         }
 
-        function displayTopStudentsRanking() {
-            if (!currentYear || !currentSubject || !currentClass) return;
-
-            const key = `${currentYear}-${currentSubject}`;
-            const students = classData[key] ? classData[key][currentClass] : [];
-            
-            if (students.length === 0) {
-                document.getElementById('topStudentsRanking').innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">학생 데이터가 없습니다.</div>';
-                return;
-            }
-
-            // Sort students by total points (descending) and get top 10
-            const sortedStudents = [...students].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 10);
-            
-            // Calculate statistics
-            const totalStudents = students.length;
-            const averagePoints = students.reduce((sum, student) => sum + student.totalPoints, 0) / totalStudents;
-            const maxPoints = Math.max(...students.map(s => s.totalPoints));
-            const minPoints = Math.min(...students.map(s => s.totalPoints));
-
-            document.getElementById('topStudentsRanking').innerHTML = `
-                <!-- Statistics Summary -->
-                <div class="col-span-full bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-4">
-                    <h4 class="text-lg font-bold text-purple-600 mb-3">📊 ${currentClass} 통계 요약</h4>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        <div class="bg-white rounded-lg p-3">
-                            <div class="text-2xl font-bold text-blue-600">${totalStudents}</div>
-                            <div class="text-sm text-gray-600">총 학생 수</div>
-                        </div>
-                        <div class="bg-white rounded-lg p-3">
-                            <div class="text-2xl font-bold text-green-600">${averagePoints.toFixed(1)}</div>
-                            <div class="text-sm text-gray-600">평균 점수</div>
-                        </div>
-                        <div class="bg-white rounded-lg p-3">
-                            <div class="text-2xl font-bold text-orange-600">${maxPoints}</div>
-                            <div class="text-sm text-gray-600">최고 점수</div>
-                        </div>
-                        <div class="bg-white rounded-lg p-3">
-                            <div class="text-2xl font-bold text-red-600">${minPoints}</div>
-                            <div class="text-sm text-gray-600">최저 점수</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Top 10 Ranking -->
-                ${sortedStudents.map((student, index) => {
-                    const studentIndex = students.findIndex(s => s.name === student.name);
-                    const rankColors = [
-                        'from-yellow-400 to-yellow-600', // 1st place - Gold
-                        'from-gray-300 to-gray-500',     // 2nd place - Silver  
-                        'from-orange-400 to-orange-600', // 3rd place - Bronze
-                        'from-blue-400 to-blue-600',     // 4th-10th place - Blue
-                        'from-blue-400 to-blue-600',
-                        'from-blue-400 to-blue-600',
-                        'from-blue-400 to-blue-600',
-                        'from-blue-400 to-blue-600',
-                        'from-blue-400 to-blue-600',
-                        'from-blue-400 to-blue-600'
-                    ];
-                    
-                    const rankIcons = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
-                    
-                    return `
-                        <div class="bg-white rounded-xl p-4 border-2 ${index < 3 ? 'border-yellow-300 shadow-lg' : 'border-gray-200'} hover:shadow-xl transition-all duration-300">
-                            <div class="flex items-center space-x-4">
-                                <div class="text-3xl">${rankIcons[index]}</div>
-                                <div class="flex-shrink-0">${avatars[studentIndex % avatars.length]}</div>
-                                <div class="flex-1">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <div>
-                                            <div class="text-sm text-gray-600">${student.number}번</div>
-                                            <div class="text-lg font-bold text-purple-600">${student.name}</div>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="bg-gradient-to-r ${rankColors[index]} text-white rounded-full px-3 py-1 font-bold text-lg">
-                                                ⭐ ${student.totalPoints}점
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="text-xs text-gray-500">
-                                        총 ${student.points.length}개 항목 | 
-                                        평균보다 ${student.totalPoints > averagePoints ? '+' : ''}${(student.totalPoints - averagePoints).toFixed(1)}점
-                                    </div>
-                                    
-                                    <!-- Progress bar showing relative position -->
-                                    <div class="mt-2">
-                                        <div class="bg-gray-200 rounded-full h-2">
-                                            <div class="bg-gradient-to-r ${rankColors[index]} h-2 rounded-full transition-all duration-500" 
-                                                 style="width: ${maxPoints > 0 ? (student.totalPoints / maxPoints * 100) : 0}%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
-                
-                ${sortedStudents.length < totalStudents ? `
-                    <div class="col-span-full text-center text-gray-500 py-4 bg-gray-50 rounded-xl">
-                        ... 그 외 ${totalStudents - sortedStudents.length}명의 학생
-                    </div>
-                ` : ''}
-            `;
-        }
-
-        function toggleStudentDetails(studentName) {
-            // First, hide all other open details
-            const allDetails = document.querySelectorAll('[id^="details-"]');
-            allDetails.forEach(detail => {
-                if (detail.id !== `details-${studentName}`) {
-                    detail.classList.add('hidden');
-                }
-            });
-            
-            // Then toggle the clicked student's details
-            const detailsDiv = document.getElementById(`details-${studentName}`);
-            if (detailsDiv) {
-                detailsDiv.classList.toggle('hidden');
-            }
-        }
-
-        function deletePoint(studentName, pointId) {
-            if (!confirm('이 포인트를 삭제하시겠습니까?')) return;
-            
-            const key = `${currentYear}-${currentSubject}`;
-            const student = classData[key][currentClass].find(s => s.name === studentName);
-            
-            if (student) {
-                const pointIndex = student.points.findIndex(p => p.id === pointId);
-                if (pointIndex !== -1) {
-                    const deletedPoint = student.points[pointIndex];
-                    student.points.splice(pointIndex, 1);
-                    student.totalPoints -= deletedPoint.value;
-                    
-                    displayStudentDetails();
-                    alert('포인트가 삭제되었습니다.');
-                    
-                    // Auto-save data
-                    autoSave();
-                }
-            }
-        }
-
-        function deleteLastPoint(studentName, pointId) {
-            if (!confirm('방금 추가한 포인트를 삭제하시겠습니까?')) return;
-            
-            const key = `${currentYear}-${currentSubject}`;
-            const student = classData[key][currentClass].find(s => s.name === studentName);
-            
-            if (student) {
-                const pointIndex = student.points.findIndex(p => p.id === pointId);
-                if (pointIndex !== -1) {
-                    const deletedPoint = student.points[pointIndex];
-                    student.points.splice(pointIndex, 1);
-                    student.totalPoints -= deletedPoint.value;
-                    
-                    // Hide the result display
-                    document.getElementById('pointAdditionResult').classList.add('hidden');
-                    
-                    alert('포인트가 삭제되었습니다.');
-                    
-                    // Auto-save data
-                    autoSave();
-                }
-            }
-        }
-
-        function deleteYearSubject(year, subject) {
-            if (!confirm(`${year}년도 ${subject} 수업을 삭제하시겠습니까?\n모든 학생 데이터가 함께 삭제됩니다.`)) return;
-            
-            // Remove from yearSubjects
-            const subjectIndex = yearSubjects[year].indexOf(subject);
-            if (subjectIndex !== -1) {
-                yearSubjects[year].splice(subjectIndex, 1);
-                
-                // If no subjects left for this year, remove the year
-                if (yearSubjects[year].length === 0) {
-                    delete yearSubjects[year];
-                }
-            }
-            
-            // Remove class data
-            const key = `${year}-${subject}`;
-            delete classData[key];
-            
-            // Update selects
-            updateYearSelect();
-            updateSubjectSelect();
-            displaySavedYearSubjects();
-            
-            alert('수업이 삭제되었습니다.');
-            
-            // Auto-save data
-            autoSave();
-        }
-
-        function displayStudentManagement() {
-            if (!currentYear || !currentSubject || !currentClass) return;
-
-            const key = `${currentYear}-${currentSubject}`;
-            const students = classData[key] ? classData[key][currentClass] : [];
-            
-            if (students.length === 0) {
-                studentManagementList.innerHTML = '<div class="text-center text-gray-500 py-8">학생이 없습니다. 엑셀 파일을 업로드하거나 개별 추가해주세요.</div>';
-                return;
-            }
-            
-            studentManagementList.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    ${students.map(student => `
-                        <div class="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <input type="checkbox" value="${student.number}" class="student-checkbox rounded">
-                                <div>
-                                    <div class="font-semibold">${student.number}번 ${student.name}</div>
-                                    <div class="text-sm text-gray-500">${student.totalPoints}점</div>
-                                </div>
-                            </div>
-                            <button onclick="deleteStudent(${student.number})" 
-                                    class="bg-red-400 hover:bg-red-500 text-white px-3 py-1 rounded text-sm">
-                                삭제
-                            </button>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        function deleteStudent(studentNumber) {
-            if (!confirm('이 학생을 삭제하시겠습니까?')) return;
-            
-            const key = `${currentYear}-${currentSubject}`;
-            const studentIndex = classData[key][currentClass].findIndex(s => s.number === studentNumber);
-            
-            if (studentIndex !== -1) {
-                classData[key][currentClass].splice(studentIndex, 1);
-                displayStudentManagement();
-                updateStudentSelect();
-                alert('학생이 삭제되었습니다.');
-                
-                // Auto-save data
-                autoSave();
-            }
-        }
-
-        // Data initialization is handled by Firebase auth state changes
-
-        // Load reward settings from storage
-        if (rewardSettings.interval) {
-            document.getElementById('rewardInterval').value = rewardSettings.interval;
-        }
-        if (rewardSettings.maxPoints) {
-            document.getElementById('maxRewardPoints').value = rewardSettings.maxPoints;
-        }
-
-        // Update Firebase sync status
-        if (window.isFirebaseAvailable) {
-            document.getElementById('firebaseSyncStatus').innerHTML = '✅ 연결됨';
-            document.getElementById('lastFirebaseSync').innerHTML = '실시간';
-        } else {
-            document.getElementById('firebaseSyncStatus').innerHTML = '💾 데모 모드';
-            document.getElementById('lastFirebaseSync').innerHTML = '로컬 저장소';
-        }
-
-        console.log("✅ 포인트 시스템이 Firebase 모드로 준비되었습니다!");
+        // 페이지 로드시 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🌟 Minah Teacher\'s Class Points 시작!');
+        });
     </script>
-    </body>
-    </html>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9707dbf36201fd11',t:'MTc1NTQxOTk0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
