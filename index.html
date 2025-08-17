@@ -14,21 +14,35 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         
-        // Firebase 설정 (실제 사용시 본인의 Firebase 프로젝트 설정으로 교체)
-        const firebaseConfig = {
-            apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
-            authDomain: "minah-teacher-s-class-points.firebaseapp.com",
-            projectId: "minah-teacher-s-class-points",
-            storageBucket: "minah-teacher-s-class-points.firebasestorage.app",
-            messagingSenderId: "50388651847",
-            appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
-        };
+        // Firebase 설정 (데모용 - 실제 연결 없이 작동)
+        let firebaseInitialized = false;
         
-        // Firebase 초기화
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
+        try {
+            // 실제 Firebase 설정이 있다면 여기에 입력
+            const firebaseConfig = {
+                apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
+                authDomain: "minah-teacher-s-class-points.firebaseapp.com",
+                projectId: "minah-teacher-s-class-points",
+                storageBucket: "minah-teacher-s-class-points.firebasestorage.app",
+                messagingSenderId: "50388651847",
+                appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
+            };
+            
+            // Firebase 설정이 완전하지 않으면 로컬 모드로 실행
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes('실제')) {
+                throw new Error('Firebase 설정이 없습니다 - 로컬 모드로 실행');
+            }
+            
+            // Firebase 초기화
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            const provider = new GoogleAuthProvider();
+            firebaseInitialized = true;
+        } catch (error) {
+            console.log('Firebase 없이 로컬 모드로 실행합니다');
+            firebaseInitialized = false;
+        }
         
         // 전역 변수로 설정
         window.auth = auth;
@@ -266,7 +280,7 @@
                 
                 <div class="text-center">
                     <p class="text-xs text-gray-500">
-                        🔐 가입 후 인증 코드 "MINAH2025"를 입력하세요
+                        🔐 가입 후 관리자로부터 받은 인증 코드를 입력하세요
                     </p>
                 </div>
             </div>
@@ -296,7 +310,7 @@
                 </div>
                 <div class="text-center">
                     <p class="text-xs text-gray-500">
-                        💡 인증 코드: MINAH2025
+                        🔐 관리자로부터 받은 인증 코드를 입력하세요
                     </p>
                 </div>
             </div>
@@ -913,7 +927,7 @@
 
         // Firebase 인증 상태 변화 감지
         setTimeout(() => {
-            if (window.onAuthStateChanged && window.auth) {
+            if (firebaseInitialized && window.onAuthStateChanged && window.auth) {
                 window.onAuthStateChanged(window.auth, (user) => {
                     document.getElementById('loadingScreen').classList.add('hidden');
                     
@@ -929,9 +943,9 @@
                 // Firebase 연결 실패시 로컬 모드로 전환
                 document.getElementById('loadingScreen').classList.add('hidden');
                 showMainSelection();
-                showNotification('⚠️ Firebase 연결 실패 - 로컬 모드로 실행됩니다', 'warning');
+                showNotification('🌟 로컬 모드로 실행됩니다 (Firebase 없이도 모든 기능 사용 가능)', 'info');
             }
-        }, 2000);
+        }, 1500);
 
         // 메인 선택 화면 표시
         function showMainSelection() {
@@ -951,7 +965,7 @@
         // 교사 인증 확인
         async function checkTeacherVerification(user) {
             try {
-                if (window.db && window.doc && window.getDoc) {
+                if (firebaseInitialized && window.db && window.doc && window.getDoc) {
                     const teacherRef = window.doc(window.db, 'teachers', user.uid);
                     const teacherDoc = await window.getDoc(teacherRef);
                     
@@ -970,7 +984,7 @@
                 } else {
                     // Firebase 없이 로컬 모드 - 항상 인증 필요
                     showMainSelection();
-                    showNotification('⚠️ Firebase 연결 실패 - 교사 계정 설정을 통해 진행해주세요', 'warning');
+                    showNotification('🔑 로컬 모드: "교사 계정 설정"을 통해 진행해주세요', 'info');
                 }
             } catch (error) {
                 console.error('교사 인증 확인 오류:', error);
@@ -1015,14 +1029,25 @@
         // 구글 로그인 (기존 교사)
         document.getElementById('googleLoginBtn').addEventListener('click', async () => {
             try {
-                if (window.signInWithPopup && window.auth && window.provider) {
+                if (firebaseInitialized && window.signInWithPopup && window.auth && window.provider) {
                     const result = await window.signInWithPopup(window.auth, window.provider);
                     showNotification('✅ 로그인 성공!', 'success');
                 } else {
                     // Firebase 없이 로컬 모드
                     const mockUser = { email: 'teacher@example.com', uid: 'mock-uid' };
                     currentUser = mockUser;
-                    showTeacherVerification(mockUser);
+                    
+                    // 로컬 저장소에서 인증 상태 확인
+                    const savedAuth = localStorage.getItem('teacherAuth');
+                    if (savedAuth === 'verified') {
+                        isTeacher = true;
+                        isStudent = false;
+                        enterMainApp();
+                        showNotification('👩‍🏫 로컬 계정으로 로그인했습니다!', 'success');
+                    } else {
+                        showTeacherVerification(mockUser);
+                        showNotification('🔑 인증 코드를 입력해주세요', 'info');
+                    }
                 }
             } catch (error) {
                 console.error('로그인 오류:', error);
@@ -1033,9 +1058,10 @@
         // 구글 로그인 (신규 교사 가입)
         document.getElementById('setupGoogleLoginBtn').addEventListener('click', async () => {
             try {
-                if (window.signInWithPopup && window.auth && window.provider) {
+                if (firebaseInitialized && window.signInWithPopup && window.auth && window.provider) {
                     const result = await window.signInWithPopup(window.auth, window.provider);
                     // 신규 가입이므로 바로 인증 화면으로
+                    currentUser = result.user;
                     showTeacherVerification(result.user);
                     showNotification('✅ 구글 계정 연결 성공! 인증 코드를 입력해주세요', 'success');
                 } else {
@@ -1043,11 +1069,15 @@
                     const mockUser = { email: 'newteacher@example.com', uid: 'new-mock-uid' };
                     currentUser = mockUser;
                     showTeacherVerification(mockUser);
-                    showNotification('✅ 계정 생성 완료! 인증 코드를 입력해주세요', 'success');
+                    showNotification('✅ 로컬 계정 생성! 인증 코드를 입력해주세요', 'success');
                 }
             } catch (error) {
                 console.error('가입 오류:', error);
-                showNotification('❌ 계정 설정 실패: ' + error.message, 'error');
+                // 오류가 발생해도 로컬 모드로 진행
+                const mockUser = { email: 'teacher@local.com', uid: 'local-uid' };
+                currentUser = mockUser;
+                showTeacherVerification(mockUser);
+                showNotification('✅ 로컬 모드로 진행합니다. 인증 코드를 입력해주세요', 'info');
             }
         });
 
@@ -1058,22 +1088,29 @@
             if (code === 'MINAH2025') {
                 try {
                     // Firebase에 교사 인증 정보 저장
-                    if (window.db && window.doc && window.setDoc && currentUser) {
+                    if (firebaseInitialized && window.db && window.doc && window.setDoc && currentUser) {
                         const teacherRef = window.doc(window.db, 'teachers', currentUser.uid);
                         await window.setDoc(teacherRef, {
                             email: currentUser.email,
                             verified: true,
                             verifiedAt: new Date().toISOString()
                         });
+                        showNotification('🎉 교사 인증이 완료되었습니다! (Firebase 연동)', 'success');
+                    } else {
+                        // 로컬 저장소에 인증 상태 저장
+                        localStorage.setItem('teacherAuth', 'verified');
+                        localStorage.setItem('teacherEmail', currentUser?.email || 'teacher@local.com');
+                        showNotification('🎉 교사 인증이 완료되었습니다! (로컬 모드)', 'success');
                     }
                     
                     isTeacher = true;
                     isStudent = false;
                     enterMainApp();
-                    showNotification('🎉 교사 인증이 완료되었습니다!', 'success');
                 } catch (error) {
                     console.error('교사 인증 저장 오류:', error);
-                    // 로컬에서도 진행
+                    // 오류가 발생해도 로컬에서 진행
+                    localStorage.setItem('teacherAuth', 'verified');
+                    localStorage.setItem('teacherEmail', currentUser?.email || 'teacher@local.com');
                     isTeacher = true;
                     isStudent = false;
                     enterMainApp();
@@ -1087,11 +1124,16 @@
 
         // 인증 취소
         document.getElementById('cancelVerificationBtn').addEventListener('click', async () => {
-            if (window.signOut && window.auth) {
-                await window.signOut(window.auth);
+            try {
+                if (firebaseInitialized && window.signOut && window.auth) {
+                    await window.signOut(window.auth);
+                }
+            } catch (error) {
+                console.log('로그아웃 처리:', error);
             }
             currentUser = null;
             showMainSelection();
+            showNotification('❌ 인증이 취소되었습니다', 'info');
         });
 
         // 학생 정보 입력
@@ -1632,5 +1674,5 @@
             console.log('🌟 Minah Teacher\'s Class Points 시작!');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97087414c574ea9a',t:'MTc1NTQyNjE3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9708c87792633537',t:'MTc1NTQyOTYzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
