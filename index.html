@@ -10,65 +10,67 @@
     
     <!-- Firebase SDK -->
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        
-        // Firebase 설정
-        let firebaseInitialized = false;
-        let auth, db, provider;
+        // Firebase 초기화 상태를 전역으로 설정
+        window.firebaseInitialized = false;
         
         try {
+            // Firebase 모듈 동적 로드
+            const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+            const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
             // 실제 Firebase 설정 - 여기에 본인의 Firebase 프로젝트 설정을 입력하세요
             const firebaseConfig = {
                 // 아래 주석을 해제하고 실제 Firebase 설정값을 입력하세요
-                    apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
-                    authDomain: "minah-teacher-s-class-points.firebaseapp.com",
-                    projectId: "minah-teacher-s-class-points",
-                    storageBucket: "minah-teacher-s-class-points.firebasestorage.app",
-                    messagingSenderId: "50388651847",
-                    appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
+                           apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
+                           authDomain: "minah-teacher-s-class-points.firebaseapp.com",
+                           projectId: "minah-teacher-s-class-points",
+                           storageBucket: "minah-teacher-s-class-points.firebasestorage.app",
+                           messagingSenderId: "50388651847",
+                           appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
             };
             
             // Firebase 설정이 있는지 확인
             if (firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('your-')) {
                 // Firebase 초기화
                 const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                provider = new GoogleAuthProvider();
-                firebaseInitialized = true;
+                const auth = getAuth(app);
+                const db = getFirestore(app);
+                const provider = new GoogleAuthProvider();
+                
+                // 전역 변수로 설정
+                window.auth = auth;
+                window.db = db;
+                window.provider = provider;
+                window.signInWithPopup = signInWithPopup;
+                window.signOut = signOut;
+                window.onAuthStateChanged = onAuthStateChanged;
+                window.doc = doc;
+                window.setDoc = setDoc;
+                window.getDoc = getDoc;
+                window.collection = collection;
+                window.query = query;
+                window.where = where;
+                window.orderBy = orderBy;
+                window.onSnapshot = onSnapshot;
+                window.addDoc = addDoc;
+                window.updateDoc = updateDoc;
+                window.deleteDoc = deleteDoc;
+                window.getDocs = getDocs;
+                
+                window.firebaseInitialized = true;
                 console.log('✅ Firebase 초기화 성공');
             } else {
                 console.log('⚠️ Firebase 설정이 없어 로컬 모드로 실행합니다');
-                firebaseInitialized = false;
+                window.firebaseInitialized = false;
             }
         } catch (error) {
             console.error('❌ Firebase 초기화 실패:', error);
-            firebaseInitialized = false;
+            window.firebaseInitialized = false;
         }
         
-        // 전역 변수로 설정 (Firebase가 초기화된 경우에만)
-        if (firebaseInitialized) {
-            window.auth = auth;
-            window.db = db;
-            window.provider = provider;
-            window.signInWithPopup = signInWithPopup;
-            window.signOut = signOut;
-            window.onAuthStateChanged = onAuthStateChanged;
-            window.doc = doc;
-            window.setDoc = setDoc;
-            window.getDoc = getDoc;
-            window.collection = collection;
-            window.query = query;
-            window.where = where;
-            window.orderBy = orderBy;
-            window.onSnapshot = onSnapshot;
-            window.addDoc = addDoc;
-            window.updateDoc = updateDoc;
-            window.deleteDoc = deleteDoc;
-            window.getDocs = getDocs;
-        }
+        // Firebase 초기화 완료 이벤트 발생
+        window.dispatchEvent(new Event('firebaseReady'));
     </script>
     
     <style>
@@ -935,7 +937,7 @@
         function startApp() {
             document.getElementById('loadingScreen').classList.add('hidden');
             
-            if (firebaseInitialized && window.onAuthStateChanged && window.auth) {
+            if (window.firebaseInitialized && window.onAuthStateChanged && window.auth) {
                 // Firebase 모드
                 window.onAuthStateChanged(window.auth, (user) => {
                     if (user) {
@@ -954,13 +956,34 @@
             }
         }
 
-        // 앱 시작 (최대 2초 후 강제 시작)
-        setTimeout(startApp, 1000);
+        // Firebase 준비 완료 대기
+        function waitForFirebaseAndStart() {
+            if (typeof window.firebaseInitialized !== 'undefined') {
+                startApp();
+            } else {
+                // Firebase 초기화 이벤트 대기
+                window.addEventListener('firebaseReady', startApp, { once: true });
+                
+                // 최대 2초 후 강제 시작
+                setTimeout(() => {
+                    if (document.getElementById('loadingScreen') && !document.getElementById('loadingScreen').classList.contains('hidden')) {
+                        startApp();
+                    }
+                }, 2000);
+            }
+        }
+
+        // 페이지 로드 후 시작
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', waitForFirebaseAndStart);
+        } else {
+            waitForFirebaseAndStart();
+        }
         
         // 강제 시작 버튼 (로딩이 너무 오래 걸릴 경우)
         setTimeout(() => {
             const loadingScreen = document.getElementById('loadingScreen');
-            if (!loadingScreen.classList.contains('hidden')) {
+            if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
                 const forceStartBtn = document.createElement('button');
                 forceStartBtn.innerHTML = '🚀 바로 시작하기';
                 forceStartBtn.className = 'mt-4 bg-white text-purple-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors';
@@ -987,7 +1010,7 @@
         // 교사 인증 확인
         async function checkTeacherVerification(user) {
             try {
-                if (firebaseInitialized && window.db && window.doc && window.getDoc) {
+                if (window.firebaseInitialized && window.db && window.doc && window.getDoc) {
                     const teacherRef = window.doc(window.db, 'teachers', user.uid);
                     const teacherDoc = await window.getDoc(teacherRef);
                     
@@ -1051,7 +1074,7 @@
         // 구글 로그인 (기존 교사)
         document.getElementById('googleLoginBtn').addEventListener('click', async () => {
             try {
-                if (firebaseInitialized && window.signInWithPopup && window.auth && window.provider) {
+                if (window.firebaseInitialized && window.signInWithPopup && window.auth && window.provider) {
                     const result = await window.signInWithPopup(window.auth, window.provider);
                     showNotification('✅ 로그인 성공!', 'success');
                 } else {
@@ -1080,7 +1103,7 @@
         // 구글 로그인 (신규 교사 가입)
         document.getElementById('setupGoogleLoginBtn').addEventListener('click', async () => {
             try {
-                if (firebaseInitialized && window.signInWithPopup && window.auth && window.provider) {
+                if (window.firebaseInitialized && window.signInWithPopup && window.auth && window.provider) {
                     const result = await window.signInWithPopup(window.auth, window.provider);
                     // 신규 가입이므로 바로 인증 화면으로
                     currentUser = result.user;
@@ -1110,7 +1133,7 @@
             if (code === 'MINAH2025') {
                 try {
                     // Firebase에 교사 인증 정보 저장
-                    if (firebaseInitialized && window.db && window.doc && window.setDoc && currentUser) {
+                    if (window.firebaseInitialized && window.db && window.doc && window.setDoc && currentUser) {
                         const teacherRef = window.doc(window.db, 'teachers', currentUser.uid);
                         await window.setDoc(teacherRef, {
                             email: currentUser.email,
@@ -1147,7 +1170,7 @@
         // 인증 취소
         document.getElementById('cancelVerificationBtn').addEventListener('click', async () => {
             try {
-                if (firebaseInitialized && window.signOut && window.auth) {
+                if (window.firebaseInitialized && window.signOut && window.auth) {
                     await window.signOut(window.auth);
                 }
             } catch (error) {
@@ -1696,5 +1719,5 @@
             console.log('🌟 Minah Teacher\'s Class Points 시작!');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9708d467b37cc093',t:'MTc1NTQzMDEyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9708df19528bea1b',t:'MTc1NTQzMDU2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
