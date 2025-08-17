@@ -19,14 +19,14 @@
             const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
             const { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
             
-            // Firebase 설정 - 실제 프로젝트 설정으로 교체하세요
+            // Firebase 설정 - 여기에 실제 Firebase 프로젝트 설정을 입력하세요
             const firebaseConfig = {
                 apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
-                authDomain: "minah-teacher-s-class-points.firebaseapp.com",
-                projectId: "minah-teacher-s-class-points",
-                storageBucket: "minah-teacher-s-class-points.firebasestorage.app",
-                messagingSenderId: "50388651847",
-                appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
+            authDomain: "minah-teacher-s-class-points.firebaseapp.com",
+            projectId: "minah-teacher-s-class-points",
+            storageBucket: "minah-teacher-s-class-points.firebasestorage.app",
+            messagingSenderId: "50388651847",
+            appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
             };
             
             // Firebase 초기화 (항상 시도)
@@ -60,13 +60,9 @@
             
         } catch (error) {
             console.error('❌ Firebase 초기화 실패:', error);
-            console.log('📝 Firebase 프로젝트 설정이 필요합니다:');
-            console.log('1. https://console.firebase.google.com 에서 새 프로젝트 생성');
-            console.log('2. Authentication > Sign-in method > Google 활성화');
-            console.log('3. Firestore Database 생성');
-            console.log('4. 프로젝트 설정에서 웹 앱 추가 후 설정값 복사');
+            alert('Firebase 설정이 필요합니다. firebaseConfig 객체에 실제 프로젝트 설정을 입력해주세요.');
             
-            // 로컬 모드로 폴백
+            // Firebase 설정 오류시 페이지 새로고침 유도
             window.firebaseInitialized = false;
         }
         
@@ -318,16 +314,9 @@
                     </button>
                 </div>
                 <div class="text-center">
-                    <p class="text-xs text-gray-500 mb-2">
-                        🔐 인증 코드: <strong>MINAH2025</strong>
+                    <p class="text-xs text-gray-500">
+                        🔐 관리자로부터 받은 인증 코드를 입력하세요
                     </p>
-                    <div class="bg-blue-50 rounded-lg p-3 text-xs text-blue-700">
-                        <p class="font-semibold mb-1">🔥 Firebase 연동 방법:</p>
-                        <p>1. <a href="https://console.firebase.google.com" target="_blank" class="underline">Firebase Console</a>에서 프로젝트 생성</p>
-                        <p>2. Authentication → Google 로그인 활성화</p>
-                        <p>3. Firestore Database 생성</p>
-                        <p>4. 웹 앱 추가 후 설정값을 코드에 입력</p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -958,9 +947,10 @@
                 });
                 showNotification('🔥 Firebase 연결 성공! 실시간 동기화가 활성화되었습니다', 'success');
             } else {
-                // 로컬 모드
+                // Firebase 설정 오류
+                document.getElementById('loadingScreen').classList.add('hidden');
+                alert('⚠️ Firebase 설정을 완료해주세요!\n\n1. firebaseConfig 객체에 실제 프로젝트 설정 입력\n2. Firebase Console에서 Authentication과 Firestore 활성화');
                 showMainSelection();
-                showNotification('💻 로컬 모드로 실행됩니다 (모든 기능 사용 가능)', 'info');
             }
         }
 
@@ -1086,21 +1076,7 @@
                     const result = await window.signInWithPopup(window.auth, window.provider);
                     showNotification('✅ 로그인 성공!', 'success');
                 } else {
-                    // Firebase 없이 로컬 모드
-                    const mockUser = { email: 'teacher@example.com', uid: 'mock-uid' };
-                    currentUser = mockUser;
-                    
-                    // 로컬 저장소에서 인증 상태 확인
-                    const savedAuth = localStorage.getItem('teacherAuth');
-                    if (savedAuth === 'verified') {
-                        isTeacher = true;
-                        isStudent = false;
-                        enterMainApp();
-                        showNotification('👩‍🏫 로컬 계정으로 로그인했습니다!', 'success');
-                    } else {
-                        showTeacherVerification(mockUser);
-                        showNotification('🔑 인증 코드를 입력해주세요', 'info');
-                    }
+                    showNotification('❌ Firebase 연결이 필요합니다. 설정을 확인해주세요.', 'error');
                 }
             } catch (error) {
                 console.error('로그인 오류:', error);
@@ -1118,19 +1094,11 @@
                     showTeacherVerification(result.user);
                     showNotification('✅ 구글 계정 연결 성공! 인증 코드를 입력해주세요', 'success');
                 } else {
-                    // Firebase 없이 로컬 모드
-                    const mockUser = { email: 'newteacher@example.com', uid: 'new-mock-uid' };
-                    currentUser = mockUser;
-                    showTeacherVerification(mockUser);
-                    showNotification('✅ 로컬 계정 생성! 인증 코드를 입력해주세요', 'success');
+                    showNotification('❌ Firebase 연결이 필요합니다. 설정을 확인해주세요.', 'error');
                 }
             } catch (error) {
                 console.error('가입 오류:', error);
-                // 오류가 발생해도 로컬 모드로 진행
-                const mockUser = { email: 'teacher@local.com', uid: 'local-uid' };
-                currentUser = mockUser;
-                showTeacherVerification(mockUser);
-                showNotification('✅ 로컬 모드로 진행합니다. 인증 코드를 입력해주세요', 'info');
+                showNotification('❌ 구글 로그인 실패: ' + error.message, 'error');
             }
         });
 
@@ -1143,7 +1111,10 @@
             verifyBtn.disabled = true;
             verifyBtn.innerHTML = '⏳ 인증 중...';
             
-            if (code === 'MINAH2025') {
+            // 인증 코드 확인 (실제 코드는 숨김)
+            const validCode = 'MINAH2025';
+            
+            if (code === validCode) {
                 try {
                     // Firebase에 교사 인증 정보 저장
                     if (window.firebaseInitialized && window.db && window.doc && window.setDoc && currentUser) {
@@ -1154,7 +1125,7 @@
                             verified: true,
                             verifiedAt: new Date().toISOString(),
                             displayName: currentUser.displayName || currentUser.email
-                        });
+                        }, { merge: true });
                         
                         // 기본 학년도/수업 데이터 생성
                         const currentYear = new Date().getFullYear();
@@ -1164,15 +1135,11 @@
                             subjects: ['영어'],
                             createdAt: new Date().toISOString(),
                             updatedAt: new Date().toISOString()
-                        });
+                        }, { merge: true });
                         
                         showNotification('🎉 Firebase 연동 완료! 교사 인증이 성공했습니다', 'success');
                     } else {
-                        // 로컬 저장소에 인증 상태 저장
-                        localStorage.setItem('teacherAuth', 'verified');
-                        localStorage.setItem('teacherEmail', currentUser?.email || 'teacher@local.com');
-                        localStorage.setItem('teacherUid', currentUser?.uid || 'local-uid');
-                        showNotification('🎉 교사 인증이 완료되었습니다! (로컬 모드)', 'success');
+                        throw new Error('Firebase 연결이 필요합니다');
                     }
                     
                     isTeacher = true;
@@ -1185,20 +1152,10 @@
                     
                 } catch (error) {
                     console.error('교사 인증 저장 오류:', error);
-                    // 오류가 발생해도 로컬에서 진행
-                    localStorage.setItem('teacherAuth', 'verified');
-                    localStorage.setItem('teacherEmail', currentUser?.email || 'teacher@local.com');
-                    localStorage.setItem('teacherUid', currentUser?.uid || 'local-uid');
-                    isTeacher = true;
-                    isStudent = false;
-                    
-                    setTimeout(() => {
-                        enterMainApp();
-                    }, 1000);
-                    showNotification('🎉 교사 인증이 완료되었습니다! (로컬 백업)', 'success');
+                    showNotification('❌ Firebase 연동 중 오류가 발생했습니다. Firebase 설정을 확인해주세요.', 'error');
                 }
             } else {
-                showNotification('❌ 인증 코드가 올바르지 않습니다. MINAH2025를 입력하세요', 'error');
+                showNotification('❌ 인증 코드가 올바르지 않습니다', 'error');
                 document.getElementById('verificationCode').value = '';
                 document.getElementById('verificationCode').focus();
             }
@@ -2026,5 +1983,5 @@
             console.log('🌟 Minah Teacher\'s Class Points 시작!');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9708f20c76afc435',t:'MTc1NTQzMTMzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9708fef5a4a9309d',t:'MTc1NTQzMTg2OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
