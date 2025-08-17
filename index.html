@@ -12,14 +12,19 @@
     <script type="module">
         // Firebase 초기화 상태를 전역으로 설정
         window.firebaseInitialized = false;
+        window.firebaseError = null;
         
         try {
-            // Firebase 모듈 동적 로드
-            const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-            const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-            const { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            console.log('🔥 Firebase SDK 로딩 시작...');
             
-            // 🔥 Firebase 프로젝트 연결 완료!
+            // Firebase 모듈 동적 로드 (최신 버전)
+            const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js');
+            const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js');
+            const { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, getDocs, enableNetwork, disableNetwork, connectFirestoreEmulator } = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js');
+            
+            console.log('✅ Firebase SDK 로드 완료');
+            
+            // 🔥 Firebase 프로젝트 설정 (완전 검증됨)
             const firebaseConfig = {
                 apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
                 authDomain: "minah-teacher-s-class-points.firebaseapp.com",
@@ -29,40 +34,104 @@
                 appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
             };
             
-            // Firebase 초기화 (항상 시도)
+            // Firebase 앱 초기화
+            console.log('🔥 Firebase 앱 초기화 중...');
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
             const db = getFirestore(app);
+            
+            // 구글 로그인 제공자 설정
             const provider = new GoogleAuthProvider();
+            provider.addScope('email');
+            provider.addScope('profile');
+            provider.setCustomParameters({
+                prompt: 'select_account',
+                hd: '' // 모든 도메인 허용
+            });
             
-            // 전역 변수로 설정
-            window.auth = auth;
-            window.db = db;
-            window.provider = provider;
-            window.signInWithPopup = signInWithPopup;
-            window.signOut = signOut;
-            window.onAuthStateChanged = onAuthStateChanged;
-            window.doc = doc;
-            window.setDoc = setDoc;
-            window.getDoc = getDoc;
-            window.collection = collection;
-            window.query = query;
-            window.where = where;
-            window.orderBy = orderBy;
-            window.onSnapshot = onSnapshot;
-            window.addDoc = addDoc;
-            window.updateDoc = updateDoc;
-            window.deleteDoc = deleteDoc;
-            window.getDocs = getDocs;
+            console.log('✅ Firebase 서비스 초기화 완료');
             
-            window.firebaseInitialized = true;
-            console.log('✅ Firebase 초기화 성공');
+            // 전역 변수로 설정 (안전한 방식)
+            Object.assign(window, {
+                auth,
+                db,
+                provider,
+                signInWithPopup,
+                signOut,
+                onAuthStateChanged,
+                doc,
+                setDoc,
+                getDoc,
+                collection,
+                query,
+                where,
+                orderBy,
+                onSnapshot,
+                addDoc,
+                updateDoc,
+                deleteDoc,
+                getDocs,
+                enableNetwork,
+                disableNetwork
+            });
+            
+            // 고급 연결 테스트 함수
+            window.testFirebaseConnection = async function() {
+                try {
+                    console.log('🔥 Firebase 연결 상태 확인 중...');
+                    
+                    // 1단계: 네트워크 연결 활성화
+                    await enableNetwork(db);
+                    console.log('✅ 네트워크 연결 활성화');
+                    
+                    // 2단계: 읽기 테스트
+                    const testRef = doc(db, 'system', 'connectionTest');
+                    const testDoc = await getDoc(testRef);
+                    console.log('✅ Firestore 읽기 테스트 성공');
+                    
+                    // 3단계: 쓰기 테스트 (권한 확인)
+                    try {
+                        await setDoc(testRef, {
+                            timestamp: Date.now(),
+                            test: true,
+                            userAgent: navigator.userAgent.substring(0, 100)
+                        }, { merge: true });
+                        console.log('✅ Firestore 쓰기 테스트 성공');
+                        return { success: true, canWrite: true };
+                    } catch (writeError) {
+                        console.log('⚠️ 쓰기 권한 없음 (읽기만 가능)');
+                        return { success: true, canWrite: false, error: writeError };
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Firebase 연결 테스트 실패:', error);
+                    return { success: false, error };
+                }
+            };
+            
+            // 연결 테스트 실행
+            console.log('🔥 Firebase 연결 테스트 실행...');
+            const testResult = await window.testFirebaseConnection();
+            
+            if (testResult.success) {
+                window.firebaseInitialized = true;
+                window.firebaseCanWrite = testResult.canWrite;
+                
+                if (testResult.canWrite) {
+                    console.log('🎉 Firebase 완전 초기화 성공! (읽기/쓰기 모두 가능)');
+                } else {
+                    console.log('⚠️ Firebase 부분 초기화 (읽기만 가능 - 권한 설정 필요)');
+                    window.firebaseError = testResult.error;
+                }
+            } else {
+                throw testResult.error;
+            }
             
         } catch (error) {
             console.error('❌ Firebase 초기화 실패:', error);
-            // Firebase 오류시 로컬 모드로 자동 전환
             window.firebaseInitialized = false;
-            console.log('🔄 로컬 모드로 전환됩니다');
+            window.firebaseError = error;
+            console.log('⚠️ Firebase 연결 문제 - 설정 확인 필요');
         }
         
         // Firebase 초기화 완료 이벤트 발생
@@ -933,35 +1002,11 @@
         function startApp() {
             document.getElementById('loadingScreen').classList.add('hidden');
             
-            // Firebase 연결 오류 감지 및 자동 처리
-            const originalConsoleError = console.error;
-            console.error = function(...args) {
-                const errorMessage = args.join(' ');
-                
-                // Firebase 연결 오류 패턴 감지
-                if (errorMessage.includes('WebChannelConnection') || 
-                    errorMessage.includes('transport errored') ||
-                    errorMessage.includes('Failed to load resource') ||
-                    errorMessage.includes('400 (Bad Request)') ||
-                    errorMessage.includes('firestore.googleapis.com')) {
-                    
-                    console.log('🔄 Firebase 연결 오류 감지됨, 로컬 모드 권장');
-                    
-                    // 오류 알림 표시 (한 번만)
-                    if (!window.firebaseErrorShown) {
-                        window.firebaseErrorShown = true;
-                        setTimeout(() => {
-                            showFirebaseErrorModal();
-                        }, 2000);
-                    }
-                }
-                
-                // 원래 console.error 호출
-                originalConsoleError.apply(console, args);
-            };
-            
+            // Firebase 상태 확인
             if (window.firebaseInitialized && window.onAuthStateChanged && window.auth) {
-                // Firebase 모드 시도
+                console.log('🔥 Firebase 모드로 시작');
+                
+                // Firebase 인증 상태 리스너 설정
                 try {
                     window.onAuthStateChanged(window.auth, (user) => {
                         if (user) {
@@ -972,16 +1017,133 @@
                             showMainSelection();
                         }
                     });
-                    showNotification('🔥 Firebase 연결 시도 중...', 'info');
+                    
+                    // Firebase 상태에 따른 알림
+                    if (window.firebaseCanWrite) {
+                        showNotification('🔥 Firebase 완전 연결! 실시간 동기화 활성화', 'success');
+                    } else {
+                        showNotification('⚠️ Firebase 부분 연결 (읽기 전용)', 'warning');
+                        
+                        // 권한 설정 안내 (3초 후)
+                        setTimeout(() => {
+                            if (window.firebaseError && 
+                                (window.firebaseError.code === 'permission-denied' || 
+                                 window.firebaseError.message?.includes('Missing or insufficient permissions'))) {
+                                showFirebasePermissionError();
+                            }
+                        }, 3000);
+                    }
                 } catch (error) {
-                    console.log('Firebase 초기화 오류:', error);
-                    showMainSelection();
-                    showNotification('💾 로컬 모드로 실행됩니다', 'info');
+                    console.error('Firebase 인증 설정 오류:', error);
+                    handleFirebaseError(error);
                 }
             } else {
-                // 로컬 모드로 자동 전환
-                showMainSelection();
-                showNotification('💾 로컬 모드로 실행됩니다', 'info');
+                // Firebase 연결 실패 처리
+                console.log('⚠️ Firebase 연결 실패 - 설정 확인 필요');
+                
+                if (window.firebaseError) {
+                    console.error('Firebase 오류 상세:', window.firebaseError);
+                    
+                    // 특정 오류에 따른 처리
+                    if (window.firebaseError.code === 'permission-denied' || 
+                        window.firebaseError.message?.includes('Missing or insufficient permissions')) {
+                        showFirebasePermissionError();
+                    } else {
+                        showFirebaseConnectionError();
+                    }
+                } else {
+                    showFirebaseConnectionError();
+                }
+            }
+        }
+        
+        // Firebase 권한 오류 처리 (개선됨)
+        function showFirebasePermissionError() {
+            showMainSelection();
+            
+            setTimeout(() => {
+                const errorModal = document.createElement('div');
+                errorModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                errorModal.innerHTML = `
+                    <div class="bg-white rounded-2xl p-6 max-w-lg mx-4 shadow-2xl">
+                        <div class="text-center mb-6">
+                            <div class="text-4xl mb-3">🔒</div>
+                            <h2 class="text-xl font-bold text-orange-600 mb-2">Firebase 권한 설정 필요</h2>
+                            <p class="text-gray-600 text-sm">실시간 동기화를 위해 Firestore 규칙 설정이 필요합니다</p>
+                        </div>
+                        
+                        <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-4">
+                            <p class="text-yellow-800 text-sm"><strong>현재 상태:</strong> Firebase 연결됨 (읽기 전용)</p>
+                            <p class="text-yellow-700 text-sm mt-1">쓰기 권한 설정 후 완전한 실시간 동기화 가능</p>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <button onclick="this.closest('.fixed').remove(); showFirebaseSetupGuide();" 
+                                    class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                🔧 Firebase 규칙 설정하기 (5분)
+                            </button>
+                            <button onclick="this.closest('.fixed').remove(); continueWithReadOnlyMode();" 
+                                    class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                👀 읽기 전용으로 계속
+                            </button>
+                            <button onclick="this.closest('.fixed').remove();" 
+                                    class="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-xl font-semibold transition-colors">
+                                ✕ 닫기
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(errorModal);
+            }, 1000);
+        }
+        
+        // Firebase 연결 오류 처리
+        function showFirebaseConnectionError() {
+            showMainSelection();
+            
+            setTimeout(() => {
+                const errorModal = document.createElement('div');
+                errorModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                errorModal.innerHTML = `
+                    <div class="bg-white rounded-2xl p-6 max-w-lg mx-4 shadow-2xl">
+                        <div class="text-center mb-6">
+                            <div class="text-4xl mb-3">⚠️</div>
+                            <h2 class="text-xl font-bold text-orange-600 mb-2">Firebase 연결 확인 필요</h2>
+                            <p class="text-gray-600 text-sm">실시간 동기화를 위해 Firebase 설정을 확인해주세요</p>
+                        </div>
+                        
+                        <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                            <p class="text-yellow-700 text-sm"><strong>상황:</strong> Firebase 서버에 연결할 수 없습니다</p>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <button onclick="this.closest('.fixed').remove(); showFirebaseSetupGuide();" 
+                                    class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold">
+                                🔧 Firebase 설정 확인하기
+                            </button>
+                            <button onclick="this.closest('.fixed').remove(); location.reload();" 
+                                    class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold">
+                                🔄 다시 시도
+                            </button>
+                            <button onclick="this.closest('.fixed').remove();" 
+                                    class="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-xl font-semibold">
+                                ✕ 닫기
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(errorModal);
+            }, 1000);
+        }
+        
+        // Firebase 오류 처리 함수
+        function handleFirebaseError(error) {
+            console.error('Firebase 오류:', error);
+            
+            if (error.code === 'permission-denied') {
+                showFirebasePermissionError();
+            } else {
+                showFirebaseConnectionError();
             }
         }
 
@@ -1149,38 +1311,21 @@
                 try {
                     // Firebase 연결 상태 재확인
                     if (window.firebaseInitialized && window.db && window.doc && window.setDoc && currentUser) {
-                        console.log('🔥 Firebase 연결 시도 중...');
+                        console.log('🔥 Firebase에 교사 정보 저장 중...');
                         
-                        // 간단한 연결 테스트 (타임아웃 설정)
-                        const connectionTest = new Promise(async (resolve, reject) => {
-                            try {
-                                const testRef = window.doc(window.db, 'connectionTest', 'test');
-                                await window.setDoc(testRef, {
-                                    test: true,
-                                    timestamp: Date.now()
-                                });
-                                resolve(true);
-                            } catch (error) {
-                                reject(error);
-                            }
-                        });
-                        
-                        // 5초 타임아웃으로 연결 테스트
-                        const timeoutPromise = new Promise((_, reject) => {
-                            setTimeout(() => reject(new Error('Connection timeout')), 5000);
-                        });
-                        
+                        // Firebase 연결 테스트 및 데이터 저장
                         try {
-                            await Promise.race([connectionTest, timeoutPromise]);
-                            
-                            // 연결 성공 - 실제 데이터 저장
+                            // 교사 정보 저장
                             const teacherRef = window.doc(window.db, 'teachers', currentUser.uid);
                             await window.setDoc(teacherRef, {
                                 email: currentUser.email,
                                 verified: true,
                                 verifiedAt: new Date().toISOString(),
-                                displayName: currentUser.displayName || currentUser.email
+                                displayName: currentUser.displayName || currentUser.email,
+                                lastLogin: new Date().toISOString()
                             });
+                            
+                            console.log('✅ 교사 정보 저장 완료');
                             
                             // 기본 학년도/수업 데이터 생성
                             const currentYear = new Date().getFullYear();
@@ -1192,6 +1337,18 @@
                                 updatedAt: new Date().toISOString()
                             });
                             
+                            console.log('✅ 기본 학년도/수업 데이터 생성 완료');
+                            
+                            // 연결 테스트용 데이터 저장
+                            const testRef = window.doc(window.db, 'connectionTest', currentUser.uid);
+                            await window.setDoc(testRef, {
+                                test: true,
+                                timestamp: Date.now(),
+                                userAgent: navigator.userAgent
+                            });
+                            
+                            console.log('✅ 연결 테스트 완료');
+                            
                             showNotification('🎉 Firebase 연동 완료! 실시간 동기화가 활성화되었습니다', 'success');
                             
                             isTeacher = true;
@@ -1202,48 +1359,66 @@
                             }, 1000);
                             
                         } catch (firebaseError) {
-                            console.log('🔄 Firebase 연결 실패, 로컬 모드로 전환:', firebaseError.message);
-                            throw firebaseError; // 로컬 모드 처리로 넘김
+                            console.error('🔥 Firebase 저장 오류:', firebaseError);
+                            
+                            // 권한 오류인 경우 설정 가이드 표시
+                            if (firebaseError.code === 'permission-denied' || 
+                                firebaseError.message.includes('Missing or insufficient permissions')) {
+                                
+                                showNotification('🔒 Firebase 권한 설정이 필요합니다', 'error');
+                                
+                                setTimeout(() => {
+                                    showFirebaseSetupGuide();
+                                }, 1000);
+                                
+                                // 버튼 복원
+                                verifyBtn.disabled = false;
+                                verifyBtn.innerHTML = '✅ 인증하기';
+                                return;
+                            } else {
+                                // 다른 오류는 재시도 안내
+                                showNotification('❌ Firebase 연결 오류. 잠시 후 다시 시도해주세요', 'error');
+                                
+                                // 버튼 복원
+                                verifyBtn.disabled = false;
+                                verifyBtn.innerHTML = '✅ 인증하기';
+                                return;
+                            }
                         }
                         
                     } else {
-                        throw new Error('Firebase not initialized');
+                        // Firebase 초기화 실패 - 설정 확인 필요
+                        console.log('⚠️ Firebase 초기화되지 않음');
+                        showNotification('🔧 Firebase 설정을 확인해주세요', 'warning');
+                        
+                        setTimeout(() => {
+                            showFirebaseSetupGuide();
+                        }, 1000);
+                        
+                        // 버튼 복원
+                        verifyBtn.disabled = false;
+                        verifyBtn.innerHTML = '✅ 인증하기';
+                        return;
                     }
                     
                 } catch (error) {
-                    console.log('💾 로컬 모드로 자동 전환:', error.message);
+                    console.error('인증 처리 오류:', error);
+                    showNotification('❌ 인증 처리 중 오류가 발생했습니다', 'error');
                     
-                    // 모든 Firebase 오류는 로컬 모드로 자동 전환
-                    localStorage.setItem('teacherVerified', 'true');
-                    localStorage.setItem('teacherEmail', currentUser?.email || 'teacher@local.com');
-                    localStorage.setItem('teacherMode', 'local');
-                    
-                    if (!currentUser) {
-                        currentUser = { 
-                            email: 'teacher@local.com', 
-                            uid: 'local-teacher',
-                            displayName: 'Local Teacher'
-                        };
-                    }
-                    
-                    isTeacher = true;
-                    isStudent = false;
-                    
-                    showNotification('💾 로컬 모드로 실행됩니다. 모든 기능이 정상 작동합니다!', 'success');
-                    
-                    setTimeout(() => {
-                        enterMainApp();
-                    }, 1000);
+                    // 버튼 복원
+                    verifyBtn.disabled = false;
+                    verifyBtn.innerHTML = '✅ 인증하기';
+                    return;
                 }
             } else {
                 showNotification('❌ 인증 코드가 올바르지 않습니다', 'error');
                 document.getElementById('verificationCode').value = '';
                 document.getElementById('verificationCode').focus();
+                
+                // 버튼 복원
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '✅ 인증하기';
             }
-            
-            // 버튼 복원
-            verifyBtn.disabled = false;
-            verifyBtn.innerHTML = '✅ 인증하기';
         });
 
         // 인증 취소
@@ -2209,11 +2384,27 @@ service cloud.firestore {
                 enterMainApp();
             }, 500);
         }
+        
+        // 읽기 전용 모드로 계속 진행
+        function continueWithReadOnlyMode() {
+            if (currentUser) {
+                isTeacher = true;
+                isStudent = false;
+                window.firebaseReadOnly = true;
+                
+                showNotification('👀 읽기 전용 모드로 시작합니다. 일부 기능이 제한됩니다.', 'warning');
+                setTimeout(() => {
+                    enterMainApp();
+                }, 500);
+            } else {
+                showNotification('❌ 로그인이 필요합니다', 'error');
+            }
+        }
 
         // 페이지 로드시 초기화
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🌟 Minah Teacher\'s Class Points 시작!');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9709422ca6b0d1ce',t:'MTc1NTQzNDYyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9709511de0add1e2',t:'MTc1NTQzNTIzNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
