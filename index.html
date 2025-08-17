@@ -16,12 +16,12 @@
         
         // Firebase 설정 (실제 사용시 본인의 Firebase 프로젝트 설정으로 교체)
         const firebaseConfig = {
-            apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
-            authDomain: "minah-teacher-s-class-points.firebaseapp.com",
-            projectId: "minah-teacher-s-class-points",
-            storageBucket: "minah-teacher-s-class-points.firebasestorage.app",
-            messagingSenderId: "50388651847",
-            appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
+            apiKey: "your-api-key",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "your-app-id"
         };
         
         // Firebase 초기화
@@ -161,8 +161,8 @@
         </div>
     </div>
 
-    <!-- 로그인 화면 -->
-    <div id="loginScreen" class="login-container flex items-center justify-center relative hidden">
+    <!-- 메인 선택 화면 -->
+    <div id="mainSelectionScreen" class="login-container flex items-center justify-center relative hidden">
         <div class="floating-shapes">
             <div class="shape w-20 h-20 bg-white rounded-full"></div>
             <div class="shape w-16 h-16 bg-pink-300 rounded-full"></div>
@@ -175,6 +175,40 @@
                 <div class="text-6xl mb-4">🌟</div>
                 <h1 class="text-3xl font-bold text-purple-600 mb-2">Minah Teacher's</h1>
                 <h2 class="text-xl text-gray-600">English Class Points</h2>
+                <p class="text-sm text-gray-500 mt-2">역할을 선택해주세요</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button id="teacherLoginBtn" class="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    👩‍🏫 교사 로그인 (구글 계정)
+                </button>
+                
+                <button id="studentAccessBtn" class="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    👨‍🎓 학생 조회
+                </button>
+                
+                <div class="text-center">
+                    <p class="text-xs text-gray-500">
+                        🔒 교사는 구글 인증, 학생은 바로 조회 가능
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 교사 구글 로그인 화면 -->
+    <div id="teacherLoginScreen" class="login-container flex items-center justify-center relative hidden">
+        <div class="floating-shapes">
+            <div class="shape w-20 h-20 bg-white rounded-full"></div>
+            <div class="shape w-16 h-16 bg-pink-300 rounded-full"></div>
+            <div class="shape w-24 h-24 bg-yellow-300 rounded-full"></div>
+            <div class="shape w-12 h-12 bg-blue-300 rounded-full"></div>
+        </div>
+        
+        <div class="bg-white rounded-3xl cute-shadow p-8 max-w-md w-full mx-4 relative z-10">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">👩‍🏫</div>
+                <h1 class="text-2xl font-bold text-purple-600 mb-2">교사 로그인</h1>
                 <p class="text-sm text-gray-500 mt-2">구글 계정으로 안전하게 로그인하세요</p>
             </div>
             
@@ -189,35 +223,50 @@
                     구글 계정으로 로그인
                 </button>
                 
+                <button id="backToMainBtn" class="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-xl font-semibold transition-colors">
+                    ← 뒤로 가기
+                </button>
+                
                 <div class="text-center">
                     <p class="text-xs text-gray-500">
-                        🔒 안전한 구글 인증을 통해 데이터가 보호됩니다
+                        🔒 인증된 교사만 접근 가능합니다
                     </p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 역할 선택 화면 -->
-    <div id="roleSelectionScreen" class="login-container flex items-center justify-center relative hidden">
+    <!-- 교사 인증 코드 입력 화면 -->
+    <div id="teacherVerificationScreen" class="login-container flex items-center justify-center relative hidden">
         <div class="bg-white rounded-3xl cute-shadow p-8 max-w-md w-full mx-4">
             <div class="text-center mb-8">
-                <div class="text-6xl mb-4">👋</div>
-                <h2 class="text-2xl font-bold text-purple-600 mb-2">환영합니다!</h2>
-                <p id="userEmail" class="text-gray-600 mb-4"></p>
-                <p class="text-sm text-gray-500">역할을 선택해주세요</p>
+                <div class="text-6xl mb-4">🔐</div>
+                <h2 class="text-2xl font-bold text-purple-600 mb-2">교사 인증</h2>
+                <p id="verificationUserEmail" class="text-gray-600 mb-4"></p>
+                <p class="text-sm text-gray-500">처음 로그인시 인증 코드를 입력해주세요</p>
             </div>
             
             <div class="space-y-4">
-                <button id="selectTeacherBtn" class="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-                    👩‍🏫 선생님으로 입장
-                </button>
-                <button id="selectStudentBtn" class="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-                    👨‍🎓 학생으로 입장
-                </button>
+                <input type="text" id="verificationCode" placeholder="인증 코드 입력" 
+                       class="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none text-center text-lg font-bold tracking-widest">
+                <div class="flex space-x-3">
+                    <button id="verifyCodeBtn" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                        ✅ 인증하기
+                    </button>
+                    <button id="cancelVerificationBtn" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-xl font-semibold transition-colors">
+                        취소
+                    </button>
+                </div>
+                <div class="text-center">
+                    <p class="text-xs text-gray-500">
+                        💡 힌트: 선생님께 인증 코드를 문의하세요
+                    </p>
+                </div>
             </div>
         </div>
     </div>
+
+
 
     <!-- 학생 정보 입력 모달 -->
     <div id="studentInfoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
@@ -833,23 +882,87 @@
                     
                     if (user) {
                         currentUser = user;
-                        document.getElementById('loginScreen').classList.add('hidden');
-                        document.getElementById('roleSelectionScreen').classList.remove('hidden');
-                        document.getElementById('userEmail').textContent = user.email;
+                        checkTeacherVerification(user);
                     } else {
                         currentUser = null;
-                        document.getElementById('loginScreen').classList.remove('hidden');
-                        document.getElementById('roleSelectionScreen').classList.add('hidden');
-                        document.getElementById('mainApp').classList.add('hidden');
+                        showMainSelection();
                     }
                 });
             } else {
                 // Firebase 연결 실패시 로컬 모드로 전환
                 document.getElementById('loadingScreen').classList.add('hidden');
-                document.getElementById('loginScreen').classList.remove('hidden');
+                showMainSelection();
                 showNotification('⚠️ Firebase 연결 실패 - 로컬 모드로 실행됩니다', 'warning');
             }
         }, 2000);
+
+        // 메인 선택 화면 표시
+        function showMainSelection() {
+            hideAllScreens();
+            document.getElementById('mainSelectionScreen').classList.remove('hidden');
+        }
+
+        // 모든 화면 숨기기
+        function hideAllScreens() {
+            const screens = ['mainSelectionScreen', 'teacherLoginScreen', 'teacherVerificationScreen', 'studentInfoModal', 'mainApp'];
+            screens.forEach(screenId => {
+                const screen = document.getElementById(screenId);
+                if (screen) screen.classList.add('hidden');
+            });
+        }
+
+        // 교사 인증 확인
+        async function checkTeacherVerification(user) {
+            try {
+                if (window.db && window.doc && window.getDoc) {
+                    const teacherRef = window.doc(window.db, 'teachers', user.uid);
+                    const teacherDoc = await window.getDoc(teacherRef);
+                    
+                    if (teacherDoc.exists() && teacherDoc.data().verified) {
+                        // 이미 인증된 교사
+                        isTeacher = true;
+                        isStudent = false;
+                        enterMainApp();
+                        showNotification(`👩‍🏫 ${user.email} 선생님 환영합니다!`, 'success');
+                    } else {
+                        // 인증 필요
+                        showTeacherVerification(user);
+                    }
+                } else {
+                    // Firebase 없이 로컬 모드
+                    isTeacher = true;
+                    isStudent = false;
+                    enterMainApp();
+                }
+            } catch (error) {
+                console.error('교사 인증 확인 오류:', error);
+                showTeacherVerification(user);
+            }
+        }
+
+        // 교사 인증 화면 표시
+        function showTeacherVerification(user) {
+            hideAllScreens();
+            document.getElementById('teacherVerificationScreen').classList.remove('hidden');
+            document.getElementById('verificationUserEmail').textContent = user.email;
+        }
+
+        // 메인 선택 화면 버튼들
+        document.getElementById('teacherLoginBtn').addEventListener('click', () => {
+            hideAllScreens();
+            document.getElementById('teacherLoginScreen').classList.remove('hidden');
+        });
+
+        document.getElementById('studentAccessBtn').addEventListener('click', () => {
+            hideAllScreens();
+            document.getElementById('studentInfoModal').classList.remove('hidden');
+            loadYearSubjectsForStudent();
+        });
+
+        // 뒤로 가기 버튼
+        document.getElementById('backToMainBtn').addEventListener('click', () => {
+            showMainSelection();
+        });
 
         // 구글 로그인
         document.getElementById('googleLoginBtn').addEventListener('click', async () => {
@@ -859,9 +972,9 @@
                     showNotification('✅ 로그인 성공!', 'success');
                 } else {
                     // Firebase 없이 로컬 모드
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    document.getElementById('roleSelectionScreen').classList.remove('hidden');
-                    document.getElementById('userEmail').textContent = 'local@example.com';
+                    const mockUser = { email: 'teacher@example.com', uid: 'mock-uid' };
+                    currentUser = mockUser;
+                    showTeacherVerification(mockUser);
                 }
             } catch (error) {
                 console.error('로그인 오류:', error);
@@ -869,17 +982,47 @@
             }
         });
 
-        // 역할 선택
-        document.getElementById('selectTeacherBtn').addEventListener('click', () => {
-            isTeacher = true;
-            isStudent = false;
-            enterMainApp();
+        // 교사 인증 코드 확인
+        document.getElementById('verifyCodeBtn').addEventListener('click', async () => {
+            const code = document.getElementById('verificationCode').value.trim();
+            
+            if (code === 'MINAH2025') {
+                try {
+                    // Firebase에 교사 인증 정보 저장
+                    if (window.db && window.doc && window.setDoc && currentUser) {
+                        const teacherRef = window.doc(window.db, 'teachers', currentUser.uid);
+                        await window.setDoc(teacherRef, {
+                            email: currentUser.email,
+                            verified: true,
+                            verifiedAt: new Date().toISOString()
+                        });
+                    }
+                    
+                    isTeacher = true;
+                    isStudent = false;
+                    enterMainApp();
+                    showNotification('🎉 교사 인증이 완료되었습니다!', 'success');
+                } catch (error) {
+                    console.error('교사 인증 저장 오류:', error);
+                    // 로컬에서도 진행
+                    isTeacher = true;
+                    isStudent = false;
+                    enterMainApp();
+                    showNotification('🎉 교사 인증이 완료되었습니다! (로컬 모드)', 'success');
+                }
+            } else {
+                showNotification('❌ 인증 코드가 올바르지 않습니다', 'error');
+                document.getElementById('verificationCode').value = '';
+            }
         });
 
-        document.getElementById('selectStudentBtn').addEventListener('click', () => {
-            document.getElementById('roleSelectionScreen').classList.add('hidden');
-            document.getElementById('studentInfoModal').classList.remove('hidden');
-            loadYearSubjectsForStudent();
+        // 인증 취소
+        document.getElementById('cancelVerificationBtn').addEventListener('click', async () => {
+            if (window.signOut && window.auth) {
+                await window.signOut(window.auth);
+            }
+            currentUser = null;
+            showMainSelection();
         });
 
         // 학생 정보 입력
@@ -919,7 +1062,7 @@
 
         document.getElementById('studentInfoCancel').addEventListener('click', () => {
             document.getElementById('studentInfoModal').classList.add('hidden');
-            document.getElementById('roleSelectionScreen').classList.remove('hidden');
+            showMainSelection();
         });
 
         // 메인 앱 진입
@@ -1420,5 +1563,5 @@
             console.log('🌟 Minah Teacher\'s Class Points 시작!');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9707dbf36201fd11',t:'MTc1NTQxOTk0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9708679314a430c1',t:'MTc1NTQyNTY2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
