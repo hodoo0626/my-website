@@ -1137,6 +1137,11 @@
                         });
                         
                         showNotification('🎉 Firebase 연동 완료! 교사 인증이 성공했습니다', 'success');
+                        
+                        // Firestore 규칙 설정 안내
+                        setTimeout(() => {
+                            showNotification('⚠️ Firebase Console에서 Firestore 보안 규칙을 설정해주세요', 'warning');
+                        }, 2000);
                     } else {
                         // 로컬 모드에서 인증
                         localStorage.setItem('teacherVerified', 'true');
@@ -1155,17 +1160,26 @@
                     
                 } catch (error) {
                     console.error('교사 인증 저장 오류:', error);
-                    // 로컬 모드로 폴백
-                    localStorage.setItem('teacherVerified', 'true');
-                    localStorage.setItem('teacherEmail', 'teacher@local.com');
-                    currentUser = { email: 'teacher@local.com', uid: 'local-teacher' };
-                    isTeacher = true;
-                    isStudent = false;
                     
-                    showNotification('🎉 로컬 모드로 교사 인증 완료', 'success');
-                    setTimeout(() => {
-                        enterMainApp();
-                    }, 1000);
+                    // Firebase 권한 오류인지 확인
+                    if (error.code === 'permission-denied' || error.message.includes('Missing or insufficient permissions')) {
+                        showNotification('🔒 Firebase 보안 규칙 설정이 필요합니다. 아래 안내를 따라주세요', 'warning');
+                        setTimeout(() => {
+                            showFirebaseSetupGuide();
+                        }, 1000);
+                    } else {
+                        // 기타 오류 - 로컬 모드로 폴백
+                        localStorage.setItem('teacherVerified', 'true');
+                        localStorage.setItem('teacherEmail', 'teacher@local.com');
+                        currentUser = { email: 'teacher@local.com', uid: 'local-teacher' };
+                        isTeacher = true;
+                        isStudent = false;
+                        
+                        showNotification('🎉 로컬 모드로 교사 인증 완료', 'success');
+                        setTimeout(() => {
+                            enterMainApp();
+                        }, 1000);
+                    }
                 }
             } else {
                 showNotification('❌ 인증 코드가 올바르지 않습니다', 'error');
@@ -1991,10 +2005,73 @@
             }
         }
 
+        // Firebase 설정 가이드 표시
+        function showFirebaseSetupGuide() {
+            const guideModal = document.createElement('div');
+            guideModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            guideModal.innerHTML = `
+                <div class="bg-white rounded-2xl p-8 max-w-2xl mx-4 max-h-96 overflow-y-auto">
+                    <h2 class="text-2xl font-bold text-red-600 mb-4">🔒 Firebase 보안 규칙 설정 필요</h2>
+                    <div class="space-y-4 text-sm">
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-yellow-800 mb-2">📋 설정 방법:</h3>
+                            <ol class="list-decimal list-inside space-y-2 text-yellow-700">
+                                <li><strong>Firebase Console</strong>에 접속하세요</li>
+                                <li><strong>Authentication</strong> → <strong>Sign-in method</strong> → <strong>Google</strong> 활성화</li>
+                                <li><strong>Firestore Database</strong> → <strong>규칙</strong> 탭 클릭</li>
+                                <li>아래 규칙을 복사해서 붙여넣기:</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="bg-gray-100 p-4 rounded-lg">
+                            <pre class="text-xs overflow-x-auto"><code>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}</code></pre>
+                        </div>
+                        
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <p class="text-blue-700"><strong>💡 팁:</strong> 규칙 설정 후 "게시" 버튼을 꼭 눌러주세요!</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-3 mt-6">
+                        <button onclick="this.closest('.fixed').remove(); location.reload();" 
+                                class="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold">
+                            ✅ 설정 완료 후 새로고침
+                        </button>
+                        <button onclick="this.closest('.fixed').remove(); continueWithLocalMode();" 
+                                class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-xl font-semibold">
+                            💾 로컬 모드로 계속
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(guideModal);
+        }
+        
+        // 로컬 모드로 계속 진행
+        function continueWithLocalMode() {
+            localStorage.setItem('teacherVerified', 'true');
+            localStorage.setItem('teacherEmail', 'teacher@local.com');
+            currentUser = { email: 'teacher@local.com', uid: 'local-teacher' };
+            isTeacher = true;
+            isStudent = false;
+            
+            showNotification('💾 로컬 모드로 전환되었습니다', 'info');
+            setTimeout(() => {
+                enterMainApp();
+            }, 500);
+        }
+
         // 페이지 로드시 초기화
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🌟 Minah Teacher\'s Class Points 시작!');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9709111226f7e9f8',t:'MTc1NTQzMjYxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97092c8491b5ea03',t:'MTc1NTQzMzczNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
