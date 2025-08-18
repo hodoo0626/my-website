@@ -1107,33 +1107,42 @@
                                         month: 'short',
                                         day: 'numeric'
                                     });
-                                    // 실제 배열에서의 인덱스 계산 (최근 3개를 보여주므로)
-                                    const realIndex = student.points.length - 3 + pointIndex;
+                                    // 고유 ID 생성 (날짜 + 값 + 카테고리)
+                                    const pointId = `${point.date}_${point.value}_${point.category}`;
                                     return `
                                         <div class="bg-gray-50 rounded p-1 md:p-2 text-xs relative group">
-                                            <div class="flex justify-between items-center">
-                                                <span class="font-semibold text-xs">${point.category}</span>
-                                                <div class="flex items-center space-x-1">
-                                                    <span class="text-green-600 text-xs">+${point.value}</span>
-                                                    <button onclick="deletePointByStudentAndIndex(${student.number}, ${realIndex})" 
-                                                            class="opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs transition-opacity"
-                                                            title="포인트 삭제">×</button>
+                                            <div class="flex items-center space-x-2">
+                                                <input type="checkbox" class="point-checkbox w-3 h-3" 
+                                                       data-student="${student.number}" 
+                                                       data-point-id="${pointId}"
+                                                       onchange="togglePointSelection(this)">
+                                                <div class="flex-1">
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="font-semibold text-xs">${point.category}</span>
+                                                        <span class="text-green-600 text-xs">+${point.value}</span>
+                                                    </div>
+                                                    <div class="flex justify-between items-center mt-1">
+                                                        ${point.description ? `<p class="text-gray-600 text-xs truncate">${point.description}</p>` : '<span></span>'}
+                                                        <span class="text-gray-400 text-xs">${date}</span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="flex justify-between items-center mt-1">
-                                                ${point.description ? `<p class="text-gray-600 text-xs truncate">${point.description}</p>` : '<span></span>'}
-                                                <span class="text-gray-400 text-xs">${date}</span>
                                             </div>
                                         </div>
                                     `;
                                 }).join('')}
                             </div>`
                         }
-                        ${student.points && student.points.length > 3 ? 
-                            `<button onclick="showAllPoints(${student.number})" class="mt-2 text-purple-600 hover:text-purple-800 text-xs font-semibold underline">
-                                전체 포인트 보기 (${student.points.length}개)
-                            </button>` : ''
-                        }
+                        <div class="mt-2 flex flex-wrap gap-1">
+                            ${student.points && student.points.length > 3 ? 
+                                `<button onclick="showAllPoints(${student.number})" class="text-purple-600 hover:text-purple-800 text-xs font-semibold underline">
+                                    전체 포인트 보기 (${student.points.length}개)
+                                </button>` : ''
+                            }
+                            <button onclick="deleteSelectedPoints(${student.number})" 
+                                    class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold transition-colors">
+                                선택 삭제
+                            </button>
+                        </div>
                     </div>
                 `;
                 container.appendChild(studentCard);
@@ -1978,6 +1987,16 @@
                     <p class="text-gray-600 mt-2">총 ${totalPoints}점 (${student.points.length}개 항목)</p>
                 </div>
                 <div class="p-6 overflow-y-auto max-h-96">
+                    <div class="mb-4 flex gap-2">
+                        <button onclick="selectAllModalPoints(${studentNumber})" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm font-semibold">
+                            전체 선택
+                        </button>
+                        <button onclick="deleteSelectedModalPoints(${studentNumber})" 
+                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm font-semibold">
+                            선택 삭제
+                        </button>
+                    </div>
                     <div class="space-y-3">
                         ${student.points.map((point, index) => {
                             const date = new Date(point.date).toLocaleDateString('ko-KR', {
@@ -1987,11 +2006,14 @@
                                 hour: '2-digit',
                                 minute: '2-digit'
                             });
-                            // 역순으로 표시하므로 실제 인덱스 계산
-                            const actualIndex = student.points.length - 1 - index;
+                            // 고유 ID 생성
+                            const pointId = `${point.date}_${point.value}_${point.category}`;
                             return `
-                                <div class="bg-gray-50 rounded-lg p-4 group hover:bg-gray-100 transition-colors">
-                                    <div class="flex justify-between items-start">
+                                <div class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                                    <div class="flex items-start space-x-3">
+                                        <input type="checkbox" class="modal-point-checkbox mt-1" 
+                                               data-student="${studentNumber}" 
+                                               data-point-id="${pointId}">
                                         <div class="flex-1">
                                             <div class="flex items-center space-x-2 mb-2">
                                                 <span class="bg-purple-100 text-purple-600 px-2 py-1 rounded text-sm font-semibold">${point.category}</span>
@@ -2000,9 +2022,6 @@
                                             ${point.description ? `<p class="text-gray-700 mb-2">${point.description}</p>` : ''}
                                             <p class="text-gray-500 text-sm">${date}</p>
                                         </div>
-                                        <button onclick="deletePointFromModal(${studentNumber}, ${actualIndex})" 
-                                                class="opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-opacity ml-4"
-                                                title="포인트 삭제">삭제</button>
                                     </div>
                                 </div>
                             `;
@@ -2080,6 +2099,100 @@
             }
         }
 
+        // 체크박스 포인트 선택 토글
+        function togglePointSelection(checkbox) {
+            // 체크박스 상태에 따라 배경색 변경
+            const parentDiv = checkbox.closest('.bg-gray-50');
+            if (checkbox.checked) {
+                parentDiv.classList.add('bg-blue-100', 'border-2', 'border-blue-300');
+            } else {
+                parentDiv.classList.remove('bg-blue-100', 'border-2', 'border-blue-300');
+            }
+        }
+
+        // 선택된 포인트 삭제 (학생 카드에서)
+        async function deleteSelectedPoints(studentNumber) {
+            const student = students.find(s => s.number === studentNumber);
+            if (!student || !student.points) return;
+
+            const checkboxes = document.querySelectorAll(`input[data-student="${studentNumber}"].point-checkbox:checked`);
+            if (checkboxes.length === 0) {
+                alert('삭제할 포인트를 선택해주세요.');
+                return;
+            }
+
+            const selectedPointIds = Array.from(checkboxes).map(cb => cb.dataset.pointId);
+            
+            if (confirm(`선택된 ${selectedPointIds.length}개의 포인트를 삭제하시겠습니까?`)) {
+                // 선택된 포인트들을 찾아서 삭제
+                student.points = student.points.filter(point => {
+                    const pointId = `${point.date}_${point.value}_${point.category}`;
+                    return !selectedPointIds.includes(pointId);
+                });
+
+                await saveStudents();
+                displayStudents();
+                displayRewardStatus();
+                
+                const newTotal = student.points.reduce((sum, p) => sum + p.value, 0);
+                alert(`✅ ${selectedPointIds.length}개의 포인트가 삭제되었습니다.\n\n${student.name} 학생의 현재 총점: ${newTotal}점`);
+            }
+        }
+
+        // 모달에서 전체 선택
+        function selectAllModalPoints(studentNumber) {
+            const checkboxes = document.querySelectorAll('.modal-point-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+                const parentDiv = cb.closest('.bg-gray-50');
+                if (cb.checked) {
+                    parentDiv.classList.add('bg-blue-100', 'border-2', 'border-blue-300');
+                } else {
+                    parentDiv.classList.remove('bg-blue-100', 'border-2', 'border-blue-300');
+                }
+            });
+        }
+
+        // 모달에서 선택된 포인트 삭제
+        async function deleteSelectedModalPoints(studentNumber) {
+            const student = students.find(s => s.number === studentNumber);
+            if (!student || !student.points) return;
+
+            const checkboxes = document.querySelectorAll('.modal-point-checkbox:checked');
+            if (checkboxes.length === 0) {
+                alert('삭제할 포인트를 선택해주세요.');
+                return;
+            }
+
+            const selectedPointIds = Array.from(checkboxes).map(cb => cb.dataset.pointId);
+            
+            if (confirm(`선택된 ${selectedPointIds.length}개의 포인트를 삭제하시겠습니까?`)) {
+                // 선택된 포인트들을 찾아서 삭제
+                student.points = student.points.filter(point => {
+                    const pointId = `${point.date}_${point.value}_${point.category}`;
+                    return !selectedPointIds.includes(pointId);
+                });
+
+                await saveStudents();
+                displayStudents();
+                displayRewardStatus();
+                
+                // 모달 새로고침
+                const modal = document.querySelector('.fixed.inset-0');
+                if (modal) {
+                    modal.remove();
+                    setTimeout(() => {
+                        showAllPoints(studentNumber);
+                    }, 100);
+                }
+                
+                const newTotal = student.points.reduce((sum, p) => sum + p.value, 0);
+                alert(`✅ ${selectedPointIds.length}개의 포인트가 삭제되었습니다.\n\n${student.name} 학생의 현재 총점: ${newTotal}점`);
+            }
+        }
+
         // 전역 함수로 설정 (HTML에서 호출 가능)
         window.deleteReward = function(id) {
             if (confirm('이 보상을 삭제하시겠습니까?')) {
@@ -2097,6 +2210,10 @@
         window.deletePointByStudentAndIndex = deletePointByStudentAndIndex;
         window.showAllPoints = showAllPoints;
         window.deletePointFromModal = deletePointFromModal;
+        window.togglePointSelection = togglePointSelection;
+        window.deleteSelectedPoints = deleteSelectedPoints;
+        window.selectAllModalPoints = selectAllModalPoints;
+        window.deleteSelectedModalPoints = deleteSelectedModalPoints;
 
         // 페이지 로드시 기본 화면 표시
         window.addEventListener('load', () => {
@@ -2105,5 +2222,5 @@
             showLoginScreen();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9710dbee81beea1c',t:'MTc1NTUxNDMxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9710eb8936efa7cc',t:'MTc1NTUxNDk1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
