@@ -9,11 +9,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
-        import { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
-        
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
         // Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
@@ -25,30 +25,9 @@
         };
         
         // Firebase 초기화
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
-        
-        // 전역으로 설정
-        window.auth = auth;
-        window.db = db;
-        window.provider = provider;
-        window.signInWithPopup = signInWithPopup;
-        window.signOut = signOut;
-        window.onAuthStateChanged = onAuthStateChanged;
-        window.doc = doc;
-        window.setDoc = setDoc;
-        window.getDoc = getDoc;
-        window.collection = collection;
-        window.query = query;
-        window.where = where;
-        window.orderBy = orderBy;
-        window.onSnapshot = onSnapshot;
-        window.addDoc = addDoc;
-        window.updateDoc = updateDoc;
-        window.deleteDoc = deleteDoc;
-        window.getDocs = getDocs;
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
         
         console.log('Firebase 초기화 완료');
     </script>
@@ -220,6 +199,12 @@
                     <button id="menuStudents" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
                         👥 학생 관리
                     </button>
+                    <button id="menuRewards" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
+                        🎁 보상 관리
+                    </button>
+                    <button id="menuSettings" class="menu-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold text-indigo-700 bg-white bg-opacity-50 hover:bg-indigo-50 hover:bg-opacity-80 hover:shadow-lg transition-all duration-300 text-sm md:text-lg">
+                        ⚙️ 설정
+                    </button>
                 </div>
             </div>
 
@@ -293,6 +278,82 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 보상 관리 -->
+                <div id="rewardsSection" class="space-y-8 hidden">
+                    <!-- 보상 추가 -->
+                    <div class="bg-white rounded-2xl cute-shadow p-6">
+                        <h2 class="text-2xl font-bold text-purple-600 mb-4">🎁 보상 추가</h2>
+                        <div class="grid md:grid-cols-3 gap-4 mb-4">
+                            <input type="text" id="rewardName" placeholder="보상 이름" 
+                                   class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                            <input type="number" id="rewardPoints" placeholder="필요 포인트" min="1"
+                                   class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                            <button id="addRewardBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                ➕ 보상 추가
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 보상 목록 -->
+                    <div class="bg-white rounded-2xl cute-shadow p-6">
+                        <h2 class="text-2xl font-bold text-purple-600 mb-4">🏆 보상 목록</h2>
+                        <div id="rewardsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    </div>
+                </div>
+
+                <!-- 설정 -->
+                <div id="settingsSection" class="space-y-8 hidden">
+                    <!-- 학년도 및 수업 관리 -->
+                    <div class="bg-white rounded-2xl cute-shadow p-6">
+                        <h2 class="text-2xl font-bold text-purple-600 mb-4">📅 학년도 및 수업 관리</h2>
+                        
+                        <!-- 학년도 추가 -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-purple-600 mb-3">학년도 추가</h3>
+                            <div class="flex gap-4">
+                                <input type="number" id="newYear" placeholder="예: 2025" min="2020" max="2030"
+                                       class="flex-1 px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                <button id="addYearBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+                                    ➕ 추가
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 수업 추가 -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-purple-600 mb-3">수업 추가</h3>
+                            <div class="flex gap-4">
+                                <input type="text" id="newSubject" placeholder="예: 수학, 과학"
+                                       class="flex-1 px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                <button id="addSubjectBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+                                    ➕ 추가
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 현재 설정 -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-purple-600 mb-3">현재 설정</h3>
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <div id="currentSettings" class="space-y-2 text-sm text-gray-700"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 데이터 관리 -->
+                    <div class="bg-white rounded-2xl cute-shadow p-6">
+                        <h2 class="text-2xl font-bold text-purple-600 mb-4">💾 데이터 관리</h2>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <button id="exportDataBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                📤 데이터 내보내기
+                            </button>
+                            <button id="resetDataBtn" class="bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                🗑️ 데이터 초기화
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -347,7 +408,7 @@
         ];
 
         // Firebase 인증 상태 변화 감지
-        window.onAuthStateChanged(window.auth, async (user) => {
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUser = user;
                 // 교사 인증 확인
@@ -366,9 +427,9 @@
         // 교사 인증 확인
         async function checkTeacherVerification(user) {
             try {
-                const teacherRef = window.doc(window.db, 'teachers', user.uid);
-                const teacherDoc = await window.getDoc(teacherRef);
-                return teacherDoc.exists() && teacherDoc.data().verified;
+                const teacherRef = db.collection('teachers').doc(user.uid);
+                const teacherDoc = await teacherRef.get();
+                return teacherDoc.exists && teacherDoc.data().verified;
             } catch (error) {
                 console.error('교사 인증 확인 오류:', error);
                 return false;
@@ -402,7 +463,8 @@
         // 구글 로그인
         document.getElementById('googleLoginBtn').addEventListener('click', async () => {
             try {
-                const result = await window.signInWithPopup(window.auth, window.provider);
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await auth.signInWithPopup(provider);
                 console.log('로그인 성공:', result.user.email);
             } catch (error) {
                 console.error('로그인 오류:', error);
@@ -417,8 +479,8 @@
             if (code === 'MINAH2025') {
                 try {
                     // Firebase에 교사 정보 저장
-                    const teacherRef = window.doc(window.db, 'teachers', currentUser.uid);
-                    await window.setDoc(teacherRef, {
+                    const teacherRef = db.collection('teachers').doc(currentUser.uid);
+                    await teacherRef.set({
                         email: currentUser.email,
                         verified: true,
                         verifiedAt: new Date().toISOString()
@@ -438,14 +500,14 @@
 
         // 인증 취소
         document.getElementById('cancelBtn').addEventListener('click', async () => {
-            await window.signOut(window.auth);
+            await auth.signOut();
         });
 
         // 로그아웃
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             if (confirm('로그아웃 하시겠습니까?')) {
                 try {
-                    await window.signOut(window.auth);
+                    await auth.signOut();
                 } catch (error) {
                     console.error('로그아웃 오류:', error);
                 }
@@ -459,12 +521,17 @@
             setupSelectors();
             setupPointManagement();
             setupStudentManagement();
+            setupRewardManagement();
+            setupSettings();
+            loadSettings();
         }
 
         // 메뉴 리스너 설정
         function setupMenuListeners() {
             document.getElementById('menuPoints').addEventListener('click', () => showSection('points'));
             document.getElementById('menuStudents').addEventListener('click', () => showSection('students'));
+            document.getElementById('menuRewards').addEventListener('click', () => showSection('rewards'));
+            document.getElementById('menuSettings').addEventListener('click', () => showSection('settings'));
         }
 
         // 섹션 표시
@@ -472,6 +539,8 @@
             // 모든 섹션 숨기기
             document.getElementById('pointsSection').classList.add('hidden');
             document.getElementById('studentsSection').classList.add('hidden');
+            document.getElementById('rewardsSection').classList.add('hidden');
+            document.getElementById('settingsSection').classList.add('hidden');
             
             // 메뉴 활성화 상태 제거
             document.querySelectorAll('.menu-item').forEach(item => {
@@ -537,15 +606,15 @@
             
             try {
                 // Firebase에서 데이터 로드
-                const classRef = window.doc(window.db, 'classes', classKey);
-                const docSnap = await window.getDoc(classRef);
+                const classRef = db.collection('classes').doc(classKey);
+                const docSnap = await classRef.get();
                 
-                if (docSnap.exists()) {
+                if (docSnap.exists) {
                     students = docSnap.data().students || [];
                 } else {
                     // 새 반 생성
                     students = [];
-                    await window.setDoc(classRef, {
+                    await classRef.set({
                         year: currentYear,
                         subject: currentSubject,
                         className: currentClass,
@@ -572,9 +641,9 @@
         // 실시간 리스너 설정
         function setupRealtimeListener(classKey) {
             try {
-                const classRef = window.doc(window.db, 'classes', classKey);
-                window.onSnapshot(classRef, (doc) => {
-                    if (doc.exists()) {
+                const classRef = db.collection('classes').doc(classKey);
+                classRef.onSnapshot((doc) => {
+                    if (doc.exists) {
                         students = doc.data().students || [];
                         updateStudentSelect();
                         displayStudents();
@@ -764,8 +833,8 @@
             
             try {
                 // Firebase에 저장
-                const classRef = window.doc(window.db, 'classes', classKey);
-                await window.updateDoc(classRef, {
+                const classRef = db.collection('classes').doc(classKey);
+                await classRef.update({
                     students: students,
                     lastUpdated: new Date().toISOString()
                 });
@@ -776,10 +845,234 @@
             }
         }
 
+        // 보상 관리 설정
+        function setupRewardManagement() {
+            document.getElementById('addRewardBtn').addEventListener('click', addReward);
+        }
+
+        // 설정 관리
+        function setupSettings() {
+            document.getElementById('addYearBtn').addEventListener('click', addYear);
+            document.getElementById('addSubjectBtn').addEventListener('click', addSubject);
+            document.getElementById('exportDataBtn').addEventListener('click', exportData);
+            document.getElementById('resetDataBtn').addEventListener('click', resetData);
+        }
+
+        // 보상 추가
+        function addReward() {
+            const name = document.getElementById('rewardName').value.trim();
+            const points = parseInt(document.getElementById('rewardPoints').value);
+
+            if (!name || !points) {
+                alert('보상 이름과 필요 포인트를 모두 입력해주세요.');
+                return;
+            }
+
+            const rewards = JSON.parse(localStorage.getItem('rewards') || '[]');
+            rewards.push({
+                id: Date.now(),
+                name: name,
+                points: points,
+                createdAt: new Date().toISOString()
+            });
+
+            localStorage.setItem('rewards', JSON.stringify(rewards));
+            displayRewards();
+            
+            // 폼 초기화
+            document.getElementById('rewardName').value = '';
+            document.getElementById('rewardPoints').value = '';
+            
+            alert(`보상 "${name}"이 추가되었습니다!`);
+        }
+
+        // 보상 목록 표시
+        function displayRewards() {
+            const container = document.getElementById('rewardsList');
+            const rewards = JSON.parse(localStorage.getItem('rewards') || '[]');
+            
+            container.innerHTML = '';
+            
+            rewards.forEach(reward => {
+                const rewardCard = document.createElement('div');
+                rewardCard.className = 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-xl p-4 text-center';
+                rewardCard.innerHTML = `
+                    <div class="text-2xl mb-2">🏆</div>
+                    <h3 class="font-bold text-lg mb-2">${reward.name}</h3>
+                    <p class="text-sm opacity-90">${reward.points}점 필요</p>
+                    <button onclick="deleteReward(${reward.id})" class="mt-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
+                        삭제
+                    </button>
+                `;
+                container.appendChild(rewardCard);
+            });
+        }
+
+        // 보상 삭제
+        function deleteReward(id) {
+            if (confirm('이 보상을 삭제하시겠습니까?')) {
+                const rewards = JSON.parse(localStorage.getItem('rewards') || '[]');
+                const filteredRewards = rewards.filter(r => r.id !== id);
+                localStorage.setItem('rewards', JSON.stringify(filteredRewards));
+                displayRewards();
+            }
+        }
+
+        // 학년도 추가
+        function addYear() {
+            const year = document.getElementById('newYear').value;
+            if (!year) {
+                alert('학년도를 입력해주세요.');
+                return;
+            }
+
+            const years = JSON.parse(localStorage.getItem('years') || '["2024", "2025"]');
+            if (!years.includes(year)) {
+                years.push(year);
+                years.sort();
+                localStorage.setItem('years', JSON.stringify(years));
+                updateYearOptions();
+                alert(`${year}년도가 추가되었습니다!`);
+            } else {
+                alert('이미 존재하는 학년도입니다.');
+            }
+            
+            document.getElementById('newYear').value = '';
+        }
+
+        // 수업 추가
+        function addSubject() {
+            const subject = document.getElementById('newSubject').value.trim();
+            if (!subject) {
+                alert('수업명을 입력해주세요.');
+                return;
+            }
+
+            const subjects = JSON.parse(localStorage.getItem('subjects') || '["영어"]');
+            if (!subjects.includes(subject)) {
+                subjects.push(subject);
+                localStorage.setItem('subjects', JSON.stringify(subjects));
+                updateSubjectOptions();
+                alert(`"${subject}" 수업이 추가되었습니다!`);
+            } else {
+                alert('이미 존재하는 수업입니다.');
+            }
+            
+            document.getElementById('newSubject').value = '';
+        }
+
+        // 설정 로드
+        function loadSettings() {
+            updateYearOptions();
+            updateSubjectOptions();
+            displayRewards();
+            updateCurrentSettings();
+        }
+
+        // 학년도 옵션 업데이트
+        function updateYearOptions() {
+            const years = JSON.parse(localStorage.getItem('years') || '["2024", "2025"]');
+            const select = document.getElementById('yearSelect');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">학년도 선택</option>';
+            years.forEach(year => {
+                select.innerHTML += `<option value="${year}">${year}</option>`;
+            });
+            
+            if (currentValue) select.value = currentValue;
+        }
+
+        // 수업 옵션 업데이트
+        function updateSubjectOptions() {
+            const subjects = JSON.parse(localStorage.getItem('subjects') || '["영어"]');
+            const select = document.getElementById('subjectSelect');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">수업 선택</option>';
+            subjects.forEach(subject => {
+                select.innerHTML += `<option value="${subject}">${subject}</option>`;
+            });
+            
+            if (currentValue) select.value = currentValue;
+        }
+
+        // 현재 설정 표시
+        function updateCurrentSettings() {
+            const container = document.getElementById('currentSettings');
+            const years = JSON.parse(localStorage.getItem('years') || '["2024", "2025"]');
+            const subjects = JSON.parse(localStorage.getItem('subjects') || '["영어"]');
+            
+            container.innerHTML = `
+                <div><strong>등록된 학년도:</strong> ${years.join(', ')}</div>
+                <div><strong>등록된 수업:</strong> ${subjects.join(', ')}</div>
+                <div><strong>현재 선택:</strong> ${currentYear || '없음'} - ${currentSubject || '없음'} - ${currentClass || '없음'}</div>
+            `;
+        }
+
+        // 데이터 내보내기
+        function exportData() {
+            const allData = {
+                students: students,
+                rewards: JSON.parse(localStorage.getItem('rewards') || '[]'),
+                years: JSON.parse(localStorage.getItem('years') || '["2024", "2025"]'),
+                subjects: JSON.parse(localStorage.getItem('subjects') || '["영어"]'),
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(allData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `minah-class-data-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            alert('데이터가 내보내기되었습니다!');
+        }
+
+        // 데이터 초기화
+        function resetData() {
+            if (confirm('모든 데이터를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                if (confirm('정말로 모든 학생 데이터와 설정을 삭제하시겠습니까?')) {
+                    localStorage.clear();
+                    students = [];
+                    currentYear = '';
+                    currentSubject = '';
+                    currentClass = '';
+                    
+                    // 기본값 복원
+                    localStorage.setItem('years', JSON.stringify(['2024', '2025']));
+                    localStorage.setItem('subjects', JSON.stringify(['영어']));
+                    
+                    // UI 업데이트
+                    document.getElementById('yearSelect').value = '';
+                    document.getElementById('subjectSelect').value = '';
+                    document.getElementById('classSelect').value = '';
+                    
+                    loadSettings();
+                    displayStudents();
+                    updateStudentSelect();
+                    
+                    alert('모든 데이터가 초기화되었습니다.');
+                }
+            }
+        }
+
+        // 전역 함수로 설정 (HTML에서 호출 가능)
+        window.deleteReward = function(id) {
+            if (confirm('이 보상을 삭제하시겠습니까?')) {
+                const rewards = JSON.parse(localStorage.getItem('rewards') || '[]');
+                const filteredRewards = rewards.filter(r => r.id !== id);
+                localStorage.setItem('rewards', JSON.stringify(filteredRewards));
+                displayRewards();
+            }
+        };
+
         // 페이지 로드시 초기화
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Minah Teacher\'s Class Points 시작!');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970dda0011c03275',t:'MTc1NTQ4Mjc4My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970de88d14a5ea28',t:'MTc1NTQ4MzM3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
