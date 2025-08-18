@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Minah Teacher's English Class Points</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌟</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -176,7 +176,7 @@
         <div class="bg-white cute-shadow mb-8 sticky top-0 z-40">
             <div class="container mx-auto px-4 md:px-6 py-4">
                 <div class="flex justify-between items-center">
-                    <h1 class="text-lg md:text-4xl font-black text-indigo-700 ml-12 md:ml-0" style="font-family: 'Nunito', sans-serif; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">🌟 Minah Teacher's Class Points</h1>
+                    <h1 class="text-sm md:text-4xl font-black text-indigo-700 ml-12 md:ml-0 leading-tight" style="font-family: 'Nunito', sans-serif; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">🌟 Minah Teacher's<br class="md:hidden"> Class Points</h1>
                     <div class="flex items-center space-x-2 md:space-x-4">
                         <span id="userInfo" class="text-sm md:text-base text-purple-600 font-semibold"></span>
                         <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-3 md:px-6 py-2 rounded-full font-semibold transition-colors text-xs md:text-base">
@@ -188,7 +188,7 @@
         </div>
 
         <!-- 모바일 메뉴 토글 -->
-        <button id="mobileMenuToggle" class="md:hidden fixed top-4 left-4 z-50 bg-purple-500 text-white p-3 rounded-full shadow-lg">
+        <button id="mobileMenuToggle" class="md:hidden fixed top-6 left-4 z-50 bg-purple-500 text-white p-2 rounded-full shadow-lg">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
@@ -196,7 +196,7 @@
 
         <div class="flex">
             <!-- 사이드바 -->
-            <div id="sidebar" class="w-56 md:w-56 bg-gradient-to-b from-purple-100 via-indigo-100 to-violet-100 h-screen fixed left-0 top-0 pt-24 px-4 shadow-2xl transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-40">
+            <div id="sidebar" class="w-64 md:w-56 bg-gradient-to-b from-purple-100 via-indigo-100 to-violet-100 h-screen fixed left-0 top-0 pt-20 px-4 shadow-2xl transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-40 overflow-y-auto">
                 <div class="space-y-3">
                     <div class="text-sm md:text-lg font-bold text-indigo-700 mb-3 px-3">📅 학년도 선택</div>
                     <select id="yearSelect" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-white rounded-xl focus:border-yellow-300 focus:outline-none text-xs md:text-sm mb-4 bg-white text-purple-700 font-semibold">
@@ -248,86 +248,86 @@
             <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
 
             <!-- 메인 콘텐츠 -->
-            <div id="mainContent" class="flex-1 md:ml-56 px-4 md:px-8 pr-4 md:pr-12">
+            <div id="mainContent" class="flex-1 md:ml-56 px-2 md:px-8 pr-2 md:pr-12 pb-4">
                 <!-- 포인트 관리 -->
                 <div id="pointsSection" class="space-y-8">
-                    <div id="teacherControls" class="bg-white rounded-2xl cute-shadow p-6">
-                        <h2 class="text-2xl font-bold text-purple-600 mb-4">✨ 포인트 관리</h2>
+                    <div id="teacherControls" class="bg-white rounded-2xl cute-shadow p-4 md:p-6">
+                        <h2 class="text-xl md:text-2xl font-bold text-purple-600 mb-4">✨ 포인트 관리</h2>
                         
-                        <div class="grid md:grid-cols-2 gap-4 mb-4">
-                            <select id="studentSelect" class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                        <div class="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4 mb-4">
+                            <select id="studentSelect" class="w-full px-3 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none text-sm md:text-base">
                                 <option value="">학생 선택</option>
                             </select>
                             <input type="number" id="pointValue" placeholder="포인트" min="1" max="10"
-                                   class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                   class="w-full px-3 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none text-sm md:text-base">
                         </div>
 
-                        <div class="grid md:grid-cols-2 gap-4 mb-4">
-                            <select id="pointCategory" class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                        <div class="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4 mb-4">
+                            <select id="pointCategory" class="w-full px-3 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none text-sm md:text-base">
                                 <option value="">카테고리 선택</option>
                                 <option value="발표">📢 발표</option>
                                 <option value="과제">📝 과제</option>
                                 <option value="기타">⭐ 기타</option>
                             </select>
                             <input type="text" id="pointDescription" placeholder="간단한 설명 (선택사항)" 
-                                   class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                   class="w-full px-3 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none text-sm md:text-base">
                         </div>
                         
-                        <button id="addPointBtn" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                        <button id="addPointBtn" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors text-sm md:text-base">
                             🎉 포인트 추가
                         </button>
                     </div>
 
                     <!-- 학생 목록 -->
-                    <div id="studentsDisplay" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+                    <div id="studentsDisplay" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6"></div>
                 </div>
 
                 <!-- 학생 관리 -->
                 <div id="studentsSection" class="space-y-8 hidden">
                     <!-- 엑셀 업로드 -->
-                    <div class="bg-white rounded-2xl cute-shadow p-6">
-                        <h2 class="text-2xl font-bold text-purple-600 mb-4">📊 학생 명단 업로드</h2>
+                    <div class="bg-white rounded-2xl cute-shadow p-4 md:p-6">
+                        <h2 class="text-xl md:text-2xl font-bold text-purple-600 mb-4">📊 학생 명단 업로드</h2>
                         <div class="mb-4">
-                            <p class="text-sm text-gray-600 mb-2">엑셀 파일 형식: 연번(A열), 이름(B열)</p>
+                            <p class="text-xs md:text-sm text-gray-600 mb-2">엑셀 파일 형식: 연번(A열), 이름(B열)</p>
                             <input type="file" id="excelFile" accept=".xlsx,.xls" 
-                                   class="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                   class="w-full px-3 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none text-sm">
                         </div>
-                        <button id="uploadBtn" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                        <button id="uploadBtn" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors text-sm md:text-base">
                             📤 명단 업로드
                         </button>
                     </div>
 
                     <!-- 수동 학생 관리 -->
-                    <div class="bg-white rounded-2xl cute-shadow p-6">
-                        <h2 class="text-2xl font-bold text-purple-600 mb-4">👤 학생 개별 관리</h2>
-                        <div class="grid md:grid-cols-3 gap-4 mb-4">
+                    <div class="bg-white rounded-2xl cute-shadow p-4 md:p-6">
+                        <h2 class="text-xl md:text-2xl font-bold text-purple-600 mb-4">👤 학생 개별 관리</h2>
+                        <div class="space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 mb-4">
                             <input type="number" id="newStudentNumber" placeholder="번호" 
-                                   class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                   class="w-full px-3 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none text-sm md:text-base">
                             <input type="text" id="newStudentName" placeholder="이름" 
-                                   class="px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
-                            <button id="addStudentBtn" class="bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                   class="w-full px-3 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none text-sm md:text-base">
+                            <button id="addStudentBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors text-sm md:text-base">
                                 ➕ 학생 추가
                             </button>
                         </div>
                     </div>
 
                     <!-- 학생 목록 관리 -->
-                    <div id="studentListSection" class="bg-white rounded-2xl cute-shadow p-6 hidden">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-2xl font-bold text-purple-600">👥 학생 목록</h2>
-                            <div class="space-x-2">
-                                <button id="selectAllBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                    <div id="studentListSection" class="bg-white rounded-2xl cute-shadow p-4 md:p-6 hidden">
+                        <div class="mb-4">
+                            <h2 class="text-xl md:text-2xl font-bold text-purple-600 mb-3">👥 학생 목록</h2>
+                            <div class="flex flex-wrap gap-2">
+                                <button id="selectAllBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg font-semibold transition-colors text-xs md:text-sm">
                                     전체 선택
                                 </button>
-                                <button id="deleteSelectedBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                                <button id="deleteSelectedBtn" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg font-semibold transition-colors text-xs md:text-sm">
                                     선택 삭제
                                 </button>
-                                <button id="deleteAllBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                                <button id="deleteAllBtn" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-semibold transition-colors text-xs md:text-sm">
                                     전체 삭제
                                 </button>
                             </div>
                         </div>
-                        <div id="studentListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                        <div id="studentListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4"></div>
                     </div>
                 </div>
 
@@ -464,7 +464,7 @@
 
         // 다양한 아바타 SVG
         const avatars = [
-            `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            `<svg class="w-full h-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="45" fill="#FFB6C1"/>
                 <circle cx="35" cy="35" r="4" fill="#FF1493"/>
                 <circle cx="65" cy="35" r="4" fill="#FF1493"/>
@@ -472,28 +472,28 @@
                 <circle cx="25" cy="25" r="6" fill="#FF69B4"/>
                 <circle cx="75" cy="25" r="6" fill="#FF69B4"/>
             </svg>`,
-            `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            `<svg class="w-full h-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="45" fill="#87CEEB"/>
                 <circle cx="35" cy="38" r="3" fill="#4169E1"/>
                 <circle cx="65" cy="38" r="3" fill="#4169E1"/>
                 <path d="M 40 58 Q 50 65 60 58" stroke="#4169E1" stroke-width="2" fill="none"/>
                 <rect x="35" y="20" width="30" height="8" rx="4" fill="#4169E1"/>
             </svg>`,
-            `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            `<svg class="w-full h-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="45" fill="#98FB98"/>
                 <circle cx="35" cy="40" r="4" fill="#228B22"/>
                 <circle cx="65" cy="40" r="4" fill="#228B22"/>
                 <ellipse cx="50" cy="60" rx="12" ry="8" fill="#228B22"/>
                 <polygon points="40,15 50,5 60,15 50,25" fill="#32CD32"/>
             </svg>`,
-            `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            `<svg class="w-full h-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="45" fill="#FFFF99"/>
                 <circle cx="35" cy="38" r="3" fill="#FF8C00"/>
                 <circle cx="65" cy="38" r="3" fill="#FF8C00"/>
                 <path d="M 35 62 Q 50 72 65 62" stroke="#FF8C00" stroke-width="3" fill="none"/>
                 <polygon points="45,20 50,10 55,20 50,30" fill="#FFD700"/>
             </svg>`,
-            `<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            `<svg class="w-full h-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="45" fill="#DDA0DD"/>
                 <circle cx="35" cy="40" r="4" fill="#8A2BE2"/>
                 <circle cx="65" cy="40" r="4" fill="#8A2BE2"/>
@@ -794,31 +794,33 @@
                 const avatarIndex = index % avatars.length;
                 
                 const studentCard = document.createElement('div');
-                studentCard.className = 'point-card bg-white rounded-2xl cute-shadow p-6 text-center hover:shadow-lg transition-all duration-300';
+                studentCard.className = 'point-card bg-white rounded-2xl cute-shadow p-3 md:p-6 text-center hover:shadow-lg transition-all duration-300';
                 studentCard.innerHTML = `
-                    <div class="mb-4">${avatars[avatarIndex]}</div>
-                    <h3 class="text-lg font-bold text-purple-600 mb-2">${student.number}번 ${student.name}</h3>
-                    <div class="bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-full px-4 py-2 font-bold text-xl mb-4">
+                    <div class="mb-3 md:mb-4 flex justify-center">
+                        <div class="w-12 h-12 md:w-16 md:h-16">${avatars[avatarIndex]}</div>
+                    </div>
+                    <h3 class="text-sm md:text-lg font-bold text-purple-600 mb-2">${student.number}번 ${student.name}</h3>
+                    <div class="bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-full px-3 py-1 md:px-4 md:py-2 font-bold text-lg md:text-xl mb-3 md:mb-4">
                         ⭐ ${totalPoints}점
                     </div>
                     <div class="text-left">
-                        <h4 class="text-sm font-bold text-purple-600 mb-2">최근 포인트</h4>
+                        <h4 class="text-xs md:text-sm font-bold text-purple-600 mb-2">최근 포인트</h4>
                         ${!student.points || student.points.length === 0 ? 
                             '<p class="text-gray-500 text-xs">포인트 없음</p>' :
-                            `<div class="space-y-1 max-h-32 overflow-y-auto">
+                            `<div class="space-y-1 max-h-24 md:max-h-32 overflow-y-auto">
                                 ${student.points.slice(-3).map(point => {
                                     const date = new Date(point.date).toLocaleDateString('ko-KR', {
                                         month: 'short',
                                         day: 'numeric'
                                     });
                                     return `
-                                        <div class="bg-gray-50 rounded p-2 text-xs">
+                                        <div class="bg-gray-50 rounded p-1 md:p-2 text-xs">
                                             <div class="flex justify-between items-center">
-                                                <span class="font-semibold">${point.category}</span>
-                                                <span class="text-green-600">+${point.value}</span>
+                                                <span class="font-semibold text-xs">${point.category}</span>
+                                                <span class="text-green-600 text-xs">+${point.value}</span>
                                             </div>
                                             <div class="flex justify-between items-center mt-1">
-                                                ${point.description ? `<p class="text-gray-600">${point.description}</p>` : '<span></span>'}
+                                                ${point.description ? `<p class="text-gray-600 text-xs truncate">${point.description}</p>` : '<span></span>'}
                                                 <span class="text-gray-400 text-xs">${date}</span>
                                             </div>
                                         </div>
@@ -1564,5 +1566,5 @@
             showLoginScreen();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970eb792e0a22916',t:'MTc1NTQ5MTg1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970ebf50d3552916',t:'MTc1NTQ5MjE3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
