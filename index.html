@@ -1107,14 +1107,15 @@
                                         month: 'short',
                                         day: 'numeric'
                                     });
-                                    const actualIndex = student.points.length - 3 + pointIndex;
+                                    // 실제 배열에서의 인덱스 계산 (최근 3개를 보여주므로)
+                                    const realIndex = student.points.length - 3 + pointIndex;
                                     return `
                                         <div class="bg-gray-50 rounded p-1 md:p-2 text-xs relative group">
                                             <div class="flex justify-between items-center">
                                                 <span class="font-semibold text-xs">${point.category}</span>
                                                 <div class="flex items-center space-x-1">
                                                     <span class="text-green-600 text-xs">+${point.value}</span>
-                                                    <button onclick="deletePoint(${student.number}, ${actualIndex >= 0 ? actualIndex : student.points.length + pointIndex})" 
+                                                    <button onclick="deletePointByStudentAndIndex(${student.number}, ${realIndex})" 
                                                             class="opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs transition-opacity"
                                                             title="포인트 삭제">×</button>
                                                 </div>
@@ -1639,7 +1640,7 @@
             document.getElementById('newSubject').value = '';
         }
 
-        // 엑셀로 내보내기
+        // 엑셀로 내보내기 (최신 데이터 반영)
         function exportToExcel() {
             if (!currentYear || !currentSubject || !currentClass) {
                 alert('학년도, 수업, 반을 먼저 선택해주세요.');
@@ -1651,28 +1652,72 @@
                 return;
             }
             
+            // 현재 시점의 최신 데이터로 엑셀 생성
             const exportData = students.map(student => {
+                // 삭제된 포인트가 반영된 최신 총점 계산
                 const totalPoints = student.points ? student.points.reduce((sum, p) => sum + p.value, 0) : 0;
-                const pointHistory = student.points ? student.points.map(p => 
-                    `${new Date(p.date).toLocaleDateString()} ${p.category} +${p.value}점 ${p.description || ''}`
-                ).join(' | ') : '';
+                
+                // 포인트 내역도 최신 상태로 (삭제된 것 제외)
+                const pointHistory = student.points && student.points.length > 0 ? 
+                    student.points.map(p => {
+                        const date = new Date(p.date).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        return `${date} ${p.category} +${p.value}점${p.description ? ` (${p.description})` : ''}`;
+                    }).join(' | ') : '포인트 없음';
+                
+                // 보상 정보도 포함
+                const rewardInterval = parseInt(localStorage.getItem('rewardInterval') || '10');
+                const rewardsEarned = Math.floor(totalPoints / rewardInterval);
+                const rewardsGiven = student.rewardsGiven || 0;
                 
                 return {
                     '번호': student.number,
                     '이름': student.name,
                     '총점': totalPoints,
-                    '포인트 내역': pointHistory
+                    '획득보상': rewardsEarned,
+                    '지급완료보상': rewardsGiven,
+                    '미지급보상': Math.max(0, rewardsEarned - rewardsGiven),
+                    '포인트개수': student.points ? student.points.length : 0,
+                    '포인트내역': pointHistory
                 };
             });
             
+            // 번호순으로 정렬
+            exportData.sort((a, b) => a.번호 - b.번호);
+            
             const ws = XLSX.utils.json_to_sheet(exportData);
+            
+            // 컬럼 너비 자동 조정
+            const colWidths = [
+                { wch: 6 },   // 번호
+                { wch: 10 },  // 이름
+                { wch: 8 },   // 총점
+                { wch: 10 },  // 획득보상
+                { wch: 12 },  // 지급완료보상
+                { wch: 10 },  // 미지급보상
+                { wch: 10 },  // 포인트개수
+                { wch: 50 }   // 포인트내역
+            ];
+            ws['!cols'] = colWidths;
+            
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, `${currentYear}-${currentSubject}-${currentClass}`);
             
-            const fileName = `${currentYear}_${currentSubject}_${currentClass}_포인트현황.xlsx`;
+            // 현재 날짜와 시간을 파일명에 포함
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('ko-KR').replace(/\./g, '').replace(/\s/g, '');
+            const timeStr = now.toLocaleTimeString('ko-KR', { hour12: false }).replace(/:/g, '');
+            const fileName = `${currentYear}_${currentSubject}_${currentClass}_포인트현황_${dateStr}_${timeStr}.xlsx`;
+            
             XLSX.writeFile(wb, fileName);
             
-            alert('엑셀 파일이 다운로드되었습니다!');
+            console.log('엑셀 내보내기 완료:', fileName);
+            alert(`✅ 최신 데이터로 엑셀 파일이 다운로드되었습니다!\n\n📊 총 ${students.length}명 학생 데이터\n📅 ${now.toLocaleString('ko-KR')}\n📁 ${fileName}`);
         }
 
         // 엑셀에서 가져오기
@@ -1850,24 +1895,59 @@
             }
         }
 
-        // 포인트 삭제 함수
-        async function deletePoint(studentNumber, pointIndex) {
+        // 포인트 삭제 함수 (개선된 버전)
+        async function deletePointByStudentAndIndex(studentNumber, pointIndex) {
+            console.log(`포인트 삭제 시도: 학생 ${studentNumber}, 인덱스 ${pointIndex}`);
+            
             const student = students.find(s => s.number === studentNumber);
-            if (!student || !student.points || pointIndex < 0 || pointIndex >= student.points.length) {
-                alert('포인트를 찾을 수 없습니다.');
+            if (!student) {
+                alert('학생을 찾을 수 없습니다.');
+                console.error('학생을 찾을 수 없음:', studentNumber);
+                return;
+            }
+            
+            if (!student.points || student.points.length === 0) {
+                alert('삭제할 포인트가 없습니다.');
+                console.error('포인트 배열이 비어있음');
+                return;
+            }
+            
+            if (pointIndex < 0 || pointIndex >= student.points.length) {
+                alert('유효하지 않은 포인트 인덱스입니다.');
+                console.error('잘못된 인덱스:', pointIndex, '배열 길이:', student.points.length);
                 return;
             }
             
             const point = student.points[pointIndex];
-            const pointDate = new Date(point.date).toLocaleDateString('ko-KR');
+            const pointDate = new Date(point.date).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
             
-            if (confirm(`${student.name} 학생의 포인트를 삭제하시겠습니까?\n\n${pointDate} ${point.category} +${point.value}점\n${point.description || ''}`)) {
+            const confirmMessage = `${student.name} 학생의 포인트를 삭제하시겠습니까?\n\n📅 ${pointDate}\n📂 ${point.category}\n⭐ +${point.value}점${point.description ? `\n📝 ${point.description}` : ''}`;
+            
+            if (confirm(confirmMessage)) {
+                // 포인트 삭제
                 student.points.splice(pointIndex, 1);
+                
+                // 데이터 저장
                 await saveStudents();
+                
+                // UI 업데이트
                 displayStudents();
                 displayRewardStatus();
-                alert(`포인트가 삭제되었습니다.`);
+                
+                console.log('포인트 삭제 완료');
+                alert(`✅ 포인트가 삭제되었습니다.\n\n${student.name} 학생의 현재 총점: ${student.points.reduce((sum, p) => sum + p.value, 0)}점`);
             }
+        }
+
+        // 기존 함수도 유지 (호환성을 위해)
+        async function deletePoint(studentNumber, pointIndex) {
+            return await deletePointByStudentAndIndex(studentNumber, pointIndex);
         }
 
         // 전체 포인트 보기 모달
@@ -1907,6 +1987,8 @@
                                 hour: '2-digit',
                                 minute: '2-digit'
                             });
+                            // 역순으로 표시하므로 실제 인덱스 계산
+                            const actualIndex = student.points.length - 1 - index;
                             return `
                                 <div class="bg-gray-50 rounded-lg p-4 group hover:bg-gray-100 transition-colors">
                                     <div class="flex justify-between items-start">
@@ -1918,7 +2000,7 @@
                                             ${point.description ? `<p class="text-gray-700 mb-2">${point.description}</p>` : ''}
                                             <p class="text-gray-500 text-sm">${date}</p>
                                         </div>
-                                        <button onclick="deletePointFromModal(${studentNumber}, ${index})" 
+                                        <button onclick="deletePointFromModal(${studentNumber}, ${actualIndex})" 
                                                 class="opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-opacity ml-4"
                                                 title="포인트 삭제">삭제</button>
                                     </div>
@@ -1938,28 +2020,63 @@
             document.body.appendChild(overlay);
         }
 
-        // 모달에서 포인트 삭제
+        // 모달에서 포인트 삭제 (개선된 버전)
         async function deletePointFromModal(studentNumber, pointIndex) {
+            console.log(`모달에서 포인트 삭제 시도: 학생 ${studentNumber}, 인덱스 ${pointIndex}`);
+            
             const student = students.find(s => s.number === studentNumber);
-            if (!student || !student.points || pointIndex < 0 || pointIndex >= student.points.length) {
-                alert('포인트를 찾을 수 없습니다.');
+            if (!student) {
+                alert('학생을 찾을 수 없습니다.');
+                console.error('학생을 찾을 수 없음:', studentNumber);
+                return;
+            }
+            
+            if (!student.points || student.points.length === 0) {
+                alert('삭제할 포인트가 없습니다.');
+                console.error('포인트 배열이 비어있음');
+                return;
+            }
+            
+            if (pointIndex < 0 || pointIndex >= student.points.length) {
+                alert('유효하지 않은 포인트 인덱스입니다.');
+                console.error('잘못된 인덱스:', pointIndex, '배열 길이:', student.points.length);
                 return;
             }
             
             const point = student.points[pointIndex];
-            const pointDate = new Date(point.date).toLocaleDateString('ko-KR');
+            const pointDate = new Date(point.date).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
             
-            if (confirm(`이 포인트를 삭제하시겠습니까?\n\n${pointDate} ${point.category} +${point.value}점\n${point.description || ''}`)) {
+            const confirmMessage = `이 포인트를 삭제하시겠습니까?\n\n📅 ${pointDate}\n📂 ${point.category}\n⭐ +${point.value}점${point.description ? `\n📝 ${point.description}` : ''}`;
+            
+            if (confirm(confirmMessage)) {
+                // 포인트 삭제
                 student.points.splice(pointIndex, 1);
+                
+                // 데이터 저장
                 await saveStudents();
+                
+                // UI 업데이트
                 displayStudents();
                 displayRewardStatus();
                 
-                // 모달 닫기
+                // 모달 새로고침 (닫지 않고 내용만 업데이트)
                 const modal = document.querySelector('.fixed.inset-0');
-                if (modal) modal.remove();
+                if (modal) {
+                    modal.remove();
+                    // 업데이트된 데이터로 모달 다시 열기
+                    setTimeout(() => {
+                        showAllPoints(studentNumber);
+                    }, 100);
+                }
                 
-                alert(`포인트가 삭제되었습니다.`);
+                console.log('모달에서 포인트 삭제 완료');
+                alert(`✅ 포인트가 삭제되었습니다.\n\n${student.name} 학생의 현재 총점: ${student.points.reduce((sum, p) => sum + p.value, 0)}점`);
             }
         }
 
@@ -1977,6 +2094,7 @@
         window.markRewardGiven = markRewardGiven;
         window.closeRewardPopup = closeRewardPopup;
         window.deletePoint = deletePoint;
+        window.deletePointByStudentAndIndex = deletePointByStudentAndIndex;
         window.showAllPoints = showAllPoints;
         window.deletePointFromModal = deletePointFromModal;
 
@@ -1987,5 +2105,5 @@
             showLoginScreen();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9710cc610378ac13',t:'MTc1NTUxMzY4Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9710dbee81beea1c',t:'MTc1NTUxNDMxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
