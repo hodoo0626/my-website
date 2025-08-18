@@ -64,6 +64,32 @@
             0%, 100% { transform: translateY(0px) rotate(0deg); }
             50% { transform: translateY(-20px) rotate(180deg); }
         }
+        .reward-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: popupBounce 0.6s ease-out;
+        }
+        .reward-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        @keyframes popupBounce {
+            0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -93,6 +119,16 @@
                         <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                     </svg>
                     구글 계정으로 로그인
+                </button>
+                
+                <button id="googleSignupBtn" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 mr-3" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    구글 계정으로 회원가입
                 </button>
                 
                 <div class="text-center">
@@ -231,9 +267,6 @@
                                 <option value="">카테고리 선택</option>
                                 <option value="발표">📢 발표</option>
                                 <option value="과제">📝 과제</option>
-                                <option value="참여">🙋‍♂️ 수업 참여</option>
-                                <option value="협력">🤝 팀워크</option>
-                                <option value="창의">💡 창의성</option>
                                 <option value="기타">⭐ 기타</option>
                             </select>
                             <input type="text" id="pointDescription" placeholder="간단한 설명 (선택사항)" 
@@ -277,10 +310,46 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- 학생 목록 관리 -->
+                    <div id="studentListSection" class="bg-white rounded-2xl cute-shadow p-6 hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-bold text-purple-600">👥 학생 목록</h2>
+                            <div class="space-x-2">
+                                <button id="selectAllBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                                    전체 선택
+                                </button>
+                                <button id="deleteSelectedBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                                    선택 삭제
+                                </button>
+                                <button id="deleteAllBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                                    전체 삭제
+                                </button>
+                            </div>
+                        </div>
+                        <div id="studentListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    </div>
                 </div>
 
                 <!-- 보상 관리 -->
                 <div id="rewardsSection" class="space-y-8 hidden">
+                    <!-- 보상 설정 -->
+                    <div class="bg-white rounded-2xl cute-shadow p-6">
+                        <h2 class="text-2xl font-bold text-purple-600 mb-4">⚙️ 보상 설정</h2>
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-purple-600 mb-2">보상 지급 단위</label>
+                                <select id="rewardInterval" class="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none">
+                                    <option value="5">5점마다</option>
+                                    <option value="10" selected>10점마다</option>
+                                    <option value="15">15점마다</option>
+                                    <option value="20">20점마다</option>
+                                    <option value="25">25점마다</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 보상 추가 -->
                     <div class="bg-white rounded-2xl cute-shadow p-6">
                         <h2 class="text-2xl font-bold text-purple-600 mb-4">🎁 보상 추가</h2>
@@ -299,6 +368,12 @@
                     <div class="bg-white rounded-2xl cute-shadow p-6">
                         <h2 class="text-2xl font-bold text-purple-600 mb-4">🏆 보상 목록</h2>
                         <div id="rewardsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    </div>
+
+                    <!-- 보상 지급 현황 -->
+                    <div class="bg-white rounded-2xl cute-shadow p-6">
+                        <h2 class="text-2xl font-bold text-purple-600 mb-4">📋 보상 지급 현황</h2>
+                        <div id="rewardStatusList" class="space-y-4"></div>
                     </div>
                 </div>
 
@@ -344,13 +419,34 @@
                     <!-- 데이터 관리 -->
                     <div class="bg-white rounded-2xl cute-shadow p-6">
                         <h2 class="text-2xl font-bold text-purple-600 mb-4">💾 데이터 관리</h2>
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <button id="exportDataBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                                📤 데이터 내보내기
-                            </button>
-                            <button id="resetDataBtn" class="bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold transition-colors">
-                                🗑️ 데이터 초기화
-                            </button>
+                        
+                        <!-- 엑셀 내보내기/가져오기 -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-purple-600 mb-3">📊 엑셀 데이터 관리</h3>
+                            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                <button id="exportExcelBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📤 엑셀로 내보내기
+                                </button>
+                                <div>
+                                    <input type="file" id="importExcelFile" accept=".xlsx,.xls" class="hidden">
+                                    <button id="importExcelBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                        📥 엑셀에서 가져오기
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- JSON 데이터 관리 -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-purple-600 mb-3">🔧 전체 데이터 관리</h3>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <button id="exportDataBtn" class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    📤 JSON 내보내기
+                                </button>
+                                <button id="resetDataBtn" class="bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                    🗑️ 데이터 초기화
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -407,21 +503,27 @@
             </svg>`
         ];
 
-        // Firebase 인증 상태 변화 감지
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUser = user;
-                // 교사 인증 확인
-                const isVerified = await checkTeacherVerification(user);
-                if (isVerified) {
-                    showMainApp();
+        // Firebase 초기화 완료 후 인증 상태 감지
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('페이지 로드 완료, Firebase 인증 리스너 설정');
+            
+            firebase.auth().onAuthStateChanged(async (user) => {
+                console.log('인증 상태 변화:', user ? user.email : '로그아웃');
+                
+                if (user) {
+                    currentUser = user;
+                    // 교사 인증 확인
+                    const isVerified = await checkTeacherVerification(user);
+                    if (isVerified) {
+                        showMainApp();
+                    } else {
+                        showVerificationScreen(user);
+                    }
                 } else {
-                    showVerificationScreen(user);
+                    currentUser = null;
+                    showLoginScreen();
                 }
-            } else {
-                currentUser = null;
-                showLoginScreen();
-            }
+            });
         });
 
         // 교사 인증 확인
@@ -464,11 +566,26 @@
         document.getElementById('googleLoginBtn').addEventListener('click', async () => {
             try {
                 const provider = new firebase.auth.GoogleAuthProvider();
-                const result = await auth.signInWithPopup(provider);
+                const result = await firebase.auth().signInWithPopup(provider);
                 console.log('로그인 성공:', result.user.email);
             } catch (error) {
                 console.error('로그인 오류:', error);
                 alert('로그인 실패: ' + error.message);
+            }
+        });
+
+        // 구글 회원가입
+        document.getElementById('googleSignupBtn').addEventListener('click', async () => {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.setCustomParameters({
+                    prompt: 'select_account'
+                });
+                const result = await firebase.auth().signInWithPopup(provider);
+                console.log('회원가입 성공:', result.user.email);
+            } catch (error) {
+                console.error('회원가입 오류:', error);
+                alert('회원가입 실패: ' + error.message);
             }
         });
 
@@ -500,14 +617,14 @@
 
         // 인증 취소
         document.getElementById('cancelBtn').addEventListener('click', async () => {
-            await auth.signOut();
+            await firebase.auth().signOut();
         });
 
         // 로그아웃
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             if (confirm('로그아웃 하시겠습니까?')) {
                 try {
-                    await auth.signOut();
+                    await firebase.auth().signOut();
                 } catch (error) {
                     console.error('로그아웃 오류:', error);
                 }
@@ -596,6 +713,9 @@
         function setupStudentManagement() {
             document.getElementById('uploadBtn').addEventListener('click', uploadExcel);
             document.getElementById('addStudentBtn').addEventListener('click', addStudent);
+            document.getElementById('selectAllBtn').addEventListener('click', selectAllStudents);
+            document.getElementById('deleteSelectedBtn').addEventListener('click', deleteSelectedStudents);
+            document.getElementById('deleteAllBtn').addEventListener('click', deleteAllStudents);
         }
 
         // 학생 데이터 로드
@@ -686,15 +806,24 @@
                         ${!student.points || student.points.length === 0 ? 
                             '<p class="text-gray-500 text-xs">포인트 없음</p>' :
                             `<div class="space-y-1 max-h-32 overflow-y-auto">
-                                ${student.points.slice(-3).map(point => `
-                                    <div class="bg-gray-50 rounded p-2 text-xs">
-                                        <div class="flex justify-between">
-                                            <span class="font-semibold">${point.category}</span>
-                                            <span class="text-green-600">+${point.value}</span>
+                                ${student.points.slice(-3).map(point => {
+                                    const date = new Date(point.date).toLocaleDateString('ko-KR', {
+                                        month: 'short',
+                                        day: 'numeric'
+                                    });
+                                    return `
+                                        <div class="bg-gray-50 rounded p-2 text-xs">
+                                            <div class="flex justify-between items-center">
+                                                <span class="font-semibold">${point.category}</span>
+                                                <span class="text-green-600">+${point.value}</span>
+                                            </div>
+                                            <div class="flex justify-between items-center mt-1">
+                                                ${point.description ? `<p class="text-gray-600">${point.description}</p>` : '<span></span>'}
+                                                <span class="text-gray-400 text-xs">${date}</span>
+                                            </div>
                                         </div>
-                                        ${point.description ? `<p class="text-gray-600 mt-1">${point.description}</p>` : ''}
-                                    </div>
-                                `).join('')}
+                                    `;
+                                }).join('')}
                             </div>`
                         }
                     </div>
@@ -725,12 +854,19 @@
                 student.points = [];
             }
 
+            const oldTotal = student.points.reduce((sum, p) => sum + p.value, 0);
+
             student.points.push({
                 value: pointValue,
                 category: category,
                 description: description,
                 date: new Date().toISOString()
             });
+
+            const newTotal = student.points.reduce((sum, p) => sum + p.value, 0);
+
+            // 보상 기준 확인
+            checkRewardEligibility(student, oldTotal, newTotal);
 
             await saveStudents();
             displayStudents();
@@ -740,6 +876,61 @@
             document.getElementById('pointDescription').value = '';
             
             alert(`${student.name}에게 ${pointValue}점이 추가되었습니다!`);
+        }
+
+        // 보상 자격 확인 및 팝업 표시
+        function checkRewardEligibility(student, oldTotal, newTotal) {
+            const rewardInterval = parseInt(localStorage.getItem('rewardInterval') || '10');
+            
+            const oldRewardCount = Math.floor(oldTotal / rewardInterval);
+            const newRewardCount = Math.floor(newTotal / rewardInterval);
+            
+            if (newRewardCount > oldRewardCount) {
+                const rewardsEarned = newRewardCount - oldRewardCount;
+                showRewardPopup(student, newTotal, rewardsEarned);
+            }
+        }
+
+        // 보상 팝업 표시
+        function showRewardPopup(student, totalPoints, rewardsEarned) {
+            const overlay = document.createElement('div');
+            overlay.className = 'reward-popup-overlay';
+            
+            const popup = document.createElement('div');
+            popup.className = 'reward-popup';
+            popup.innerHTML = `
+                <div class="text-center text-white">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h2 class="text-3xl font-bold mb-2">축하합니다!</h2>
+                    <div class="text-xl mb-4">
+                        <div class="font-bold text-2xl">${student.name} 학생</div>
+                        <div class="mt-2">총 ${totalPoints}점 달성!</div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-lg p-4 mb-4">
+                        <div class="text-lg font-bold">🏆 보상 ${rewardsEarned}개 획득!</div>
+                        <div class="text-sm mt-1">정말 잘했어요! 🌟</div>
+                    </div>
+                    <button onclick="closeRewardPopup()" class="bg-white text-orange-500 px-6 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors">
+                        확인 ✨
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(popup);
+            
+            // 3초 후 자동 닫기
+            setTimeout(() => {
+                closeRewardPopup();
+            }, 5000);
+        }
+
+        // 보상 팝업 닫기
+        function closeRewardPopup() {
+            const overlay = document.querySelector('.reward-popup-overlay');
+            const popup = document.querySelector('.reward-popup');
+            if (overlay) overlay.remove();
+            if (popup) popup.remove();
         }
 
         // 학생 추가
@@ -815,6 +1006,7 @@
                     saveStudents();
                     updateStudentSelect();
                     displayStudents();
+                    displayStudentList();
                     
                     alert(`${newStudents.length}명의 학생이 업로드되었습니다!`);
                 } catch (error) {
@@ -823,6 +1015,104 @@
                 }
             };
             reader.readAsArrayBuffer(file);
+        }
+
+        // 학생 목록 표시 (관리용)
+        function displayStudentList() {
+            const container = document.getElementById('studentListContainer');
+            const section = document.getElementById('studentListSection');
+            
+            if (students.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+            
+            section.classList.remove('hidden');
+            container.innerHTML = '';
+
+            students.forEach((student, index) => {
+                const studentItem = document.createElement('div');
+                studentItem.className = 'bg-gray-50 rounded-lg p-4 flex items-center justify-between';
+                studentItem.innerHTML = `
+                    <div class="flex items-center">
+                        <input type="checkbox" class="student-checkbox mr-3" data-number="${student.number}">
+                        <div>
+                            <div class="font-semibold">${student.number}번 ${student.name}</div>
+                            <div class="text-sm text-gray-500">
+                                포인트: ${student.points ? student.points.reduce((sum, p) => sum + p.value, 0) : 0}점
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="deleteStudent(${student.number})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                        삭제
+                    </button>
+                `;
+                container.appendChild(studentItem);
+            });
+        }
+
+        // 전체 선택
+        function selectAllStudents() {
+            const checkboxes = document.querySelectorAll('.student-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+            });
+        }
+
+        // 선택된 학생 삭제
+        function deleteSelectedStudents() {
+            const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+            const selectedNumbers = Array.from(checkboxes).map(cb => parseInt(cb.dataset.number));
+            
+            if (selectedNumbers.length === 0) {
+                alert('삭제할 학생을 선택해주세요.');
+                return;
+            }
+            
+            if (confirm(`선택된 ${selectedNumbers.length}명의 학생을 삭제하시겠습니까?`)) {
+                students = students.filter(s => !selectedNumbers.includes(s.number));
+                saveStudents();
+                updateStudentSelect();
+                displayStudents();
+                displayStudentList();
+                alert('선택된 학생들이 삭제되었습니다.');
+            }
+        }
+
+        // 전체 학생 삭제
+        function deleteAllStudents() {
+            if (students.length === 0) {
+                alert('삭제할 학생이 없습니다.');
+                return;
+            }
+            
+            if (confirm('모든 학생을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                if (confirm('정말로 모든 학생 데이터를 삭제하시겠습니까?')) {
+                    students = [];
+                    saveStudents();
+                    updateStudentSelect();
+                    displayStudents();
+                    displayStudentList();
+                    alert('모든 학생이 삭제되었습니다.');
+                }
+            }
+        }
+
+        // 개별 학생 삭제
+        function deleteStudent(number) {
+            const student = students.find(s => s.number === number);
+            if (!student) return;
+            
+            if (confirm(`${student.name} 학생을 삭제하시겠습니까?`)) {
+                students = students.filter(s => s.number !== number);
+                saveStudents();
+                updateStudentSelect();
+                displayStudents();
+                displayStudentList();
+                alert(`${student.name} 학생이 삭제되었습니다.`);
+            }
         }
 
         // 학생 데이터 저장
@@ -848,6 +1138,10 @@
         // 보상 관리 설정
         function setupRewardManagement() {
             document.getElementById('addRewardBtn').addEventListener('click', addReward);
+            document.getElementById('rewardInterval').addEventListener('change', (e) => {
+                localStorage.setItem('rewardInterval', e.target.value);
+                displayRewardStatus();
+            });
         }
 
         // 설정 관리
@@ -855,6 +1149,11 @@
             document.getElementById('addYearBtn').addEventListener('click', addYear);
             document.getElementById('addSubjectBtn').addEventListener('click', addSubject);
             document.getElementById('exportDataBtn').addEventListener('click', exportData);
+            document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+            document.getElementById('importExcelBtn').addEventListener('click', () => {
+                document.getElementById('importExcelFile').click();
+            });
+            document.getElementById('importExcelFile').addEventListener('change', importFromExcel);
             document.getElementById('resetDataBtn').addEventListener('click', resetData);
         }
 
@@ -906,6 +1205,78 @@
                 `;
                 container.appendChild(rewardCard);
             });
+            
+            displayRewardStatus();
+        }
+
+        // 보상 지급 현황 표시
+        function displayRewardStatus() {
+            const container = document.getElementById('rewardStatusList');
+            const rewardInterval = parseInt(localStorage.getItem('rewardInterval') || '10');
+            
+            container.innerHTML = '';
+            
+            if (students.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">학생 데이터가 없습니다.</p>';
+                return;
+            }
+            
+            students.forEach(student => {
+                const totalPoints = student.points ? student.points.reduce((sum, p) => sum + p.value, 0) : 0;
+                const rewardsEarned = Math.floor(totalPoints / rewardInterval);
+                const rewardsGiven = student.rewardsGiven || 0;
+                const pendingRewards = rewardsEarned - rewardsGiven;
+                
+                const statusItem = document.createElement('div');
+                statusItem.className = 'bg-gray-50 rounded-lg p-4 flex items-center justify-between';
+                statusItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="mr-4">
+                            <div class="font-semibold">${student.number}번 ${student.name}</div>
+                            <div class="text-sm text-gray-500">
+                                총 ${totalPoints}점 | 획득 보상: ${rewardsEarned}개 | 지급완료: ${rewardsGiven}개
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        ${pendingRewards > 0 ? 
+                            `<span class="bg-red-100 text-red-600 px-2 py-1 rounded text-sm font-semibold">
+                                미지급 ${pendingRewards}개
+                            </span>` : 
+                            `<span class="bg-green-100 text-green-600 px-2 py-1 rounded text-sm font-semibold">
+                                완료 ✓
+                            </span>`
+                        }
+                        <button onclick="markRewardGiven(${student.number})" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                                ${pendingRewards === 0 ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                            지급완료 체크
+                        </button>
+                    </div>
+                `;
+                container.appendChild(statusItem);
+            });
+        }
+
+        // 보상 지급 완료 체크
+        function markRewardGiven(studentNumber) {
+            const student = students.find(s => s.number === studentNumber);
+            if (!student) return;
+            
+            const totalPoints = student.points ? student.points.reduce((sum, p) => sum + p.value, 0) : 0;
+            const rewardInterval = parseInt(localStorage.getItem('rewardInterval') || '10');
+            const rewardsEarned = Math.floor(totalPoints / rewardInterval);
+            
+            if (!student.rewardsGiven) {
+                student.rewardsGiven = 0;
+            }
+            
+            if (student.rewardsGiven < rewardsEarned) {
+                student.rewardsGiven = rewardsEarned;
+                saveStudents();
+                displayRewardStatus();
+                alert(`${student.name} 학생의 보상 지급이 완료되었습니다.`);
+            }
         }
 
         // 보상 삭제
@@ -961,12 +1332,125 @@
             document.getElementById('newSubject').value = '';
         }
 
+        // 엑셀로 내보내기
+        function exportToExcel() {
+            if (!currentYear || !currentSubject || !currentClass) {
+                alert('학년도, 수업, 반을 먼저 선택해주세요.');
+                return;
+            }
+            
+            if (students.length === 0) {
+                alert('내보낼 학생 데이터가 없습니다.');
+                return;
+            }
+            
+            const exportData = students.map(student => {
+                const totalPoints = student.points ? student.points.reduce((sum, p) => sum + p.value, 0) : 0;
+                const pointHistory = student.points ? student.points.map(p => 
+                    `${new Date(p.date).toLocaleDateString()} ${p.category} +${p.value}점 ${p.description || ''}`
+                ).join(' | ') : '';
+                
+                return {
+                    '번호': student.number,
+                    '이름': student.name,
+                    '총점': totalPoints,
+                    '포인트 내역': pointHistory
+                };
+            });
+            
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, `${currentYear}-${currentSubject}-${currentClass}`);
+            
+            const fileName = `${currentYear}_${currentSubject}_${currentClass}_포인트현황.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            alert('엑셀 파일이 다운로드되었습니다!');
+        }
+
+        // 엑셀에서 가져오기
+        function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    if (jsonData.length === 0) {
+                        alert('유효한 데이터가 없습니다.');
+                        return;
+                    }
+                    
+                    // 데이터 형식 확인 및 변환
+                    const importedStudents = [];
+                    jsonData.forEach(row => {
+                        if (row['번호'] && row['이름']) {
+                            const student = {
+                                number: parseInt(row['번호']),
+                                name: row['이름'].toString().trim(),
+                                points: []
+                            };
+                            
+                            // 포인트 내역이 있다면 파싱
+                            if (row['포인트 내역']) {
+                                const pointEntries = row['포인트 내역'].split(' | ');
+                                pointEntries.forEach(entry => {
+                                    const match = entry.match(/(\d{4}\.\s*\d{1,2}\.\s*\d{1,2})\s+(\S+)\s+\+(\d+)점\s*(.*)/);
+                                    if (match) {
+                                        student.points.push({
+                                            date: new Date(match[1]).toISOString(),
+                                            category: match[2],
+                                            value: parseInt(match[3]),
+                                            description: match[4] || ''
+                                        });
+                                    }
+                                });
+                            }
+                            
+                            importedStudents.push(student);
+                        }
+                    });
+                    
+                    if (importedStudents.length === 0) {
+                        alert('가져올 수 있는 학생 데이터가 없습니다.');
+                        return;
+                    }
+                    
+                    if (confirm(`${importedStudents.length}명의 학생 데이터를 가져오시겠습니까? 기존 데이터는 덮어쓰여집니다.`)) {
+                        students = importedStudents.sort((a, b) => a.number - b.number);
+                        saveStudents();
+                        updateStudentSelect();
+                        displayStudents();
+                        displayStudentList();
+                        alert(`${importedStudents.length}명의 학생 데이터를 가져왔습니다!`);
+                    }
+                    
+                } catch (error) {
+                    console.error('엑셀 가져오기 오류:', error);
+                    alert('엑셀 파일을 읽는 중 오류가 발생했습니다.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            
+            // 파일 입력 초기화
+            event.target.value = '';
+        }
+
         // 설정 로드
         function loadSettings() {
             updateYearOptions();
             updateSubjectOptions();
             displayRewards();
             updateCurrentSettings();
+            
+            // 보상 간격 설정 로드
+            const savedInterval = localStorage.getItem('rewardInterval') || '10';
+            document.getElementById('rewardInterval').value = savedInterval;
         }
 
         // 학년도 옵션 업데이트
@@ -1069,10 +1553,16 @@
             }
         };
 
-        // 페이지 로드시 초기화
-        document.addEventListener('DOMContentLoaded', () => {
+        window.deleteStudent = deleteStudent;
+        window.markRewardGiven = markRewardGiven;
+        window.closeRewardPopup = closeRewardPopup;
+
+        // 페이지 로드시 기본 화면 표시
+        window.addEventListener('load', () => {
             console.log('Minah Teacher\'s Class Points 시작!');
+            // 기본적으로 로그인 화면 표시
+            showLoginScreen();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970de88d14a5ea28',t:'MTc1NTQ4MzM3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970eb792e0a22916',t:'MTc1NTQ5MTg1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
