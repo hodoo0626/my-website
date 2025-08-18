@@ -2,16 +2,18 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no">
     <title>Minah Teacher's English Class Points</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌟</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase SDK - 더 안정적인 버전 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <script>
         // Firebase 설정
@@ -24,10 +26,16 @@
             appId: "1:50388651847:web:0607a021e7f3ed3c1b8662"
         };
         
-        // Firebase 초기화
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        // Firebase 초기화 - 브라우저 호환성 개선
+        try {
+            firebase.initializeApp(firebaseConfig);
+            var auth = firebase.auth();
+            var db = firebase.firestore();
+        } catch (error) {
+            console.warn('Firebase 초기화 실패, 로컬 모드로 전환:', error);
+            var auth = null;
+            var db = null;
+        }
         
         console.log('Firebase 초기화 완료');
     </script>
@@ -504,26 +512,34 @@
         ];
 
         // Firebase 초기화 완료 후 인증 상태 감지
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             console.log('페이지 로드 완료, Firebase 인증 리스너 설정');
             
-            firebase.auth().onAuthStateChanged(async (user) => {
-                console.log('인증 상태 변화:', user ? user.email : '로그아웃');
-                
-                if (user) {
-                    currentUser = user;
-                    // 교사 인증 확인
-                    const isVerified = await checkTeacherVerification(user);
-                    if (isVerified) {
-                        showMainApp();
+            // Firebase가 로드되었는지 확인
+            if (typeof firebase !== 'undefined' && auth) {
+                auth.onAuthStateChanged(function(user) {
+                    console.log('인증 상태 변화:', user ? user.email : '로그아웃');
+                    
+                    if (user) {
+                        currentUser = user;
+                        // 교사 인증 확인
+                        checkTeacherVerification(user).then(function(isVerified) {
+                            if (isVerified) {
+                                showMainApp();
+                            } else {
+                                showVerificationScreen(user);
+                            }
+                        });
                     } else {
-                        showVerificationScreen(user);
+                        currentUser = null;
+                        showLoginScreen();
                     }
-                } else {
-                    currentUser = null;
-                    showLoginScreen();
-                }
-            });
+                });
+            } else {
+                console.warn('Firebase 로드 실패, 로컬 모드로 실행');
+                // Firebase 없이도 기본 기능 사용 가능
+                showLoginScreen();
+            }
         });
 
         // 교사 인증 확인
@@ -563,51 +579,88 @@
         }
 
         // 구글 로그인
-        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-            try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                const result = await firebase.auth().signInWithPopup(provider);
-                console.log('로그인 성공:', result.user.email);
-            } catch (error) {
-                console.error('로그인 오류:', error);
-                alert('로그인 실패: ' + error.message);
+        document.getElementById('googleLoginBtn').addEventListener('click', function() {
+            if (auth) {
+                try {
+                    var provider = new firebase.auth.GoogleAuthProvider();
+                    auth.signInWithPopup(provider).then(function(result) {
+                        console.log('로그인 성공:', result.user.email);
+                    }).catch(function(error) {
+                        console.error('로그인 오류:', error);
+                        alert('로그인 실패: ' + error.message);
+                    });
+                } catch (error) {
+                    console.error('로그인 오류:', error);
+                    alert('로그인 기능을 사용할 수 없습니다. 브라우저를 업데이트해주세요.');
+                }
+            } else {
+                // Firebase 없이 데모 로그인
+                alert('데모 모드로 진입합니다.');
+                currentUser = { email: 'demo@teacher.com', uid: 'demo-user' };
+                showVerificationScreen(currentUser);
             }
         });
 
         // 구글 회원가입
-        document.getElementById('googleSignupBtn').addEventListener('click', async () => {
-            try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                provider.setCustomParameters({
-                    prompt: 'select_account'
-                });
-                const result = await firebase.auth().signInWithPopup(provider);
-                console.log('회원가입 성공:', result.user.email);
-            } catch (error) {
-                console.error('회원가입 오류:', error);
-                alert('회원가입 실패: ' + error.message);
+        document.getElementById('googleSignupBtn').addEventListener('click', function() {
+            if (auth) {
+                try {
+                    var provider = new firebase.auth.GoogleAuthProvider();
+                    provider.setCustomParameters({
+                        prompt: 'select_account'
+                    });
+                    auth.signInWithPopup(provider).then(function(result) {
+                        console.log('회원가입 성공:', result.user.email);
+                    }).catch(function(error) {
+                        console.error('회원가입 오류:', error);
+                        alert('회원가입 실패: ' + error.message);
+                    });
+                } catch (error) {
+                    console.error('회원가입 오류:', error);
+                    alert('회원가입 기능을 사용할 수 없습니다. 브라우저를 업데이트해주세요.');
+                }
+            } else {
+                // Firebase 없이 데모 회원가입
+                alert('데모 모드로 진입합니다.');
+                currentUser = { email: 'demo@teacher.com', uid: 'demo-user' };
+                showVerificationScreen(currentUser);
             }
         });
 
         // 교사 인증
-        document.getElementById('verifyBtn').addEventListener('click', async () => {
-            const code = document.getElementById('verificationCode').value;
+        document.getElementById('verifyBtn').addEventListener('click', function() {
+            var code = document.getElementById('verificationCode').value;
             
             if (code === 'MINAH2025') {
-                try {
-                    // Firebase에 교사 정보 저장
-                    const teacherRef = db.collection('teachers').doc(currentUser.uid);
-                    await teacherRef.set({
-                        email: currentUser.email,
-                        verified: true,
-                        verifiedAt: new Date().toISOString()
-                    });
-                    
+                if (db) {
+                    try {
+                        // Firebase에 교사 정보 저장
+                        var teacherRef = db.collection('teachers').doc(currentUser.uid);
+                        teacherRef.set({
+                            email: currentUser.email,
+                            verified: true,
+                            verifiedAt: new Date().toISOString()
+                        }).then(function() {
+                            alert('인증이 완료되었습니다!');
+                            showMainApp();
+                        }).catch(function(error) {
+                            console.error('인증 저장 오류:', error);
+                            // 로컬 저장소에 백업
+                            localStorage.setItem('teacherVerified', 'true');
+                            alert('인증이 완료되었습니다!');
+                            showMainApp();
+                        });
+                    } catch (error) {
+                        console.error('인증 저장 오류:', error);
+                        localStorage.setItem('teacherVerified', 'true');
+                        alert('인증이 완료되었습니다!');
+                        showMainApp();
+                    }
+                } else {
+                    // Firebase 없이 로컬 저장
+                    localStorage.setItem('teacherVerified', 'true');
                     alert('인증이 완료되었습니다!');
                     showMainApp();
-                } catch (error) {
-                    console.error('인증 저장 오류:', error);
-                    alert('인증 저장 중 오류가 발생했습니다.');
                 }
             } else {
                 alert('인증 코드가 올바르지 않습니다.');
@@ -621,12 +674,26 @@
         });
 
         // 로그아웃
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
+        document.getElementById('logoutBtn').addEventListener('click', function() {
             if (confirm('로그아웃 하시겠습니까?')) {
                 try {
-                    await firebase.auth().signOut();
+                    if (auth) {
+                        auth.signOut().then(function() {
+                            console.log('로그아웃 완료');
+                        }).catch(function(error) {
+                            console.error('로그아웃 오류:', error);
+                        });
+                    } else {
+                        // Firebase 없이 로그아웃
+                        currentUser = null;
+                        localStorage.removeItem('teacherVerified');
+                        showLoginScreen();
+                    }
                 } catch (error) {
                     console.error('로그아웃 오류:', error);
+                    currentUser = null;
+                    localStorage.removeItem('teacherVerified');
+                    showLoginScreen();
                 }
             }
         });
@@ -651,6 +718,23 @@
             document.getElementById('menuSettings').addEventListener('click', () => showSection('settings'));
         }
 
+        // 모든 섹션 자동 연동
+        function syncAllSections() {
+            if (currentYear && currentSubject && currentClass) {
+                // 포인트 관리 섹션 업데이트
+                updateStudentSelect();
+                displayStudents();
+                
+                // 학생 관리 섹션 업데이트
+                displayStudentList();
+                
+                // 보상 관리 섹션 업데이트
+                displayRewardStatus();
+                
+                console.log(`모든 섹션이 ${currentYear}-${currentSubject}-${currentClass}로 연동되었습니다.`);
+            }
+        }
+
         // 섹션 표시
         function showSection(section) {
             // 모든 섹션 숨기기
@@ -667,6 +751,9 @@
             // 선택된 섹션 표시
             document.getElementById(section + 'Section').classList.remove('hidden');
             document.getElementById('menu' + section.charAt(0).toUpperCase() + section.slice(1)).classList.add('active');
+            
+            // 섹션 변경시에도 자동 연동
+            syncAllSections();
         }
 
         // 모바일 메뉴 설정
@@ -701,6 +788,8 @@
             document.getElementById('classSelect').addEventListener('change', (e) => {
                 currentClass = e.target.value;
                 loadStudents();
+                // 반 선택시 모든 섹션 자동 연동
+                syncAllSections();
             });
         }
 
@@ -1566,5 +1655,5 @@
             showLoginScreen();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970ebf50d3552916',t:'MTc1NTQ5MjE3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970ed337343dea9e',t:'MTc1NTQ5Mjk5MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
