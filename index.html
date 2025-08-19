@@ -10,170 +10,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Minah Teacher's English Class Points</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌟</text></svg>">
-    <script src="https://cdn.tailwindcss.com" onerror="console.warn('Tailwind CSS 로드 실패 - 기본 스타일 사용')"></script>
-    <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js" defer onerror="console.warn('XLSX 라이브러리 로드 실패')"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
     
-    <!-- Firebase SDK - 오류 처리 개선 -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" defer onerror="console.warn('Firebase App 로드 실패')"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js" defer onerror="console.warn('Firebase Auth 로드 실패')"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js" defer onerror="console.warn('Firebase Firestore 로드 실패')"></script>
+    <!-- Firebase SDK - 경량화 버전 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js" defer></script>
     
     <script>
-        // 🛡️ 최강 404 오류 차단 시스템 - 브라우저 레벨에서 완전 차단
-        
-        // 1단계: 모든 콘솔 함수 완전 오버라이드
-        const originalConsole = {
-            error: console.error,
-            warn: console.warn,
-            log: console.log,
-            info: console.info,
-            debug: console.debug
-        };
-        
-        // 404 관련 키워드 완전 차단 리스트
-        const blockedKeywords = [
-            '404', 'Failed to load resource', 'ERR_ABORTED', 'net::ERR',
-            'cdn-cgi', 'challenge-platform', 'hodoo0626.github.io',
-            'GET https://', 'POST https://', 'PUT https://', 'DELETE https://',
-            'the server responded with a status of 404',
-            'Failed to fetch', 'NetworkError', 'CORS error',
-            'Cross-Origin Request Blocked', 'Mixed Content'
-        ];
-        
-        function shouldBlock(message) {
-            const msgStr = String(message).toLowerCase();
-            return blockedKeywords.some(keyword => msgStr.includes(keyword.toLowerCase()));
-        }
-        
-        // 모든 콘솔 함수 완전 차단
-        console.error = function(...args) {
-            if (args.some(arg => shouldBlock(arg))) return;
-            originalConsole.error.apply(console, args);
-        };
-        
-        console.warn = function(...args) {
-            if (args.some(arg => shouldBlock(arg))) return;
-            originalConsole.warn.apply(console, args);
-        };
-        
-        console.log = function(...args) {
-            if (args.some(arg => shouldBlock(arg))) return;
-            originalConsole.log.apply(console, args);
-        };
-        
-        console.info = function(...args) {
-            if (args.some(arg => shouldBlock(arg))) return;
-            originalConsole.info.apply(console, args);
-        };
-        
-        console.debug = function(...args) {
-            if (args.some(arg => shouldBlock(arg))) return;
-            originalConsole.debug.apply(console, args);
-        };
-
-        // 2단계: fetch API 완전 오버라이드
-        const originalFetch = window.fetch;
-        window.fetch = function(...args) {
-            return originalFetch.apply(this, args).catch(error => {
-                if (shouldBlock(error.message)) {
-                    return new Response('{}', { 
-                        status: 200, 
-                        statusText: 'OK',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                }
-                throw error;
-            });
-        };
-
-        // 3단계: XMLHttpRequest 완전 오버라이드
-        const OriginalXHR = window.XMLHttpRequest;
-        window.XMLHttpRequest = function() {
-            const xhr = new OriginalXHR();
-            const originalOpen = xhr.open;
-            const originalSend = xhr.send;
-            
-            xhr.open = function(...args) {
-                this._url = args[1];
-                return originalOpen.apply(this, args);
-            };
-            
-            xhr.send = function(...args) {
-                const originalOnError = this.onerror;
-                const originalOnLoad = this.onload;
-                
-                this.onerror = function(e) {
-                    if (shouldBlock(this._url) || this.status === 404) {
-                        return; // 404 오류 완전 무시
-                    }
-                    if (originalOnError) originalOnError.call(this, e);
-                };
-                
-                this.onload = function(e) {
-                    if (this.status === 404 && shouldBlock(this._url)) {
-                        return; // 404 응답 무시
-                    }
-                    if (originalOnLoad) originalOnLoad.call(this, e);
-                };
-                
-                return originalSend.apply(this, args);
-            };
-            
-            return xhr;
-        };
-
-        // 4단계: 이미지/스크립트 로드 오류 차단
-        const originalCreateElement = document.createElement;
-        document.createElement = function(tagName) {
-            const element = originalCreateElement.call(this, tagName);
-            
-            if (tagName.toLowerCase() === 'script' || tagName.toLowerCase() === 'img' || tagName.toLowerCase() === 'link') {
-                const originalOnError = element.onerror;
-                element.onerror = function(e) {
-                    if (shouldBlock(this.src || this.href)) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
-                    }
-                    if (originalOnError) originalOnError.call(this, e);
-                };
-            }
-            
-            return element;
-        };
-
-        // 5단계: 전역 오류 이벤트 완전 차단
-        window.addEventListener('error', function(event) {
-            if (shouldBlock(event.message) || 
-                shouldBlock(event.filename) || 
-                (event.target && shouldBlock(event.target.src))) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                return false;
-            }
-        }, true);
-
-        // 6단계: Promise rejection 차단
-        window.addEventListener('unhandledrejection', function(event) {
-            if (event.reason && shouldBlock(String(event.reason))) {
-                event.preventDefault();
-                return false;
-            }
-        });
-
-        // 7단계: 리소스 로드 오류 차단
-        document.addEventListener('error', function(event) {
-            if (event.target && (event.target.tagName === 'SCRIPT' || 
-                                event.target.tagName === 'IMG' || 
-                                event.target.tagName === 'LINK')) {
-                if (shouldBlock(event.target.src || event.target.href)) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    return false;
-                }
-            }
-        }, true);
-
         // Firebase 설정 - 모든 브라우저 호환
         const firebaseConfig = {
             apiKey: "AIzaSyBdyW1w2iq79U44QDC0A_73PrcF4iWdZ9s",
@@ -189,12 +34,12 @@
         var db = null;
         var firebaseInitialized = false;
         
-        // Firebase 초기화 - 오류 처리 강화
+        // Firebase 초기화 - 모든 브라우저 호환
         function initializeFirebase() {
             try {
                 // Firebase 로드 확인
                 if (typeof firebase === 'undefined') {
-                    console.log('Firebase SDK 없음 - 로컬 모드로 실행');
+                    console.warn('Firebase SDK 로드 실패');
                     return false;
                 }
                 
@@ -213,18 +58,16 @@
                 db = firebase.firestore();
                 firebaseInitialized = true;
                 
-                // 브라우저별 설정 (오류 무시)
-                if (auth && auth.setPersistence) {
-                    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(error) {
-                        // 무시 - 중요하지 않은 오류
-                    });
-                }
+                // 브라우저별 설정
+                auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(error) {
+                    console.warn('지속성 설정 실패:', error);
+                });
                 
-                console.log('Firebase 초기화 성공');
+                console.log('Firebase 초기화 성공 - 모든 브라우저 호환');
                 return true;
                 
             } catch (error) {
-                console.log('Firebase 없이 로컬 모드로 실행');
+                console.warn('Firebase 초기화 실패:', error.message);
                 auth = null;
                 db = null;
                 firebaseInitialized = false;
@@ -755,43 +598,33 @@
             </svg>`
         ];
 
-        // 페이지 로드 및 Firebase 초기화 - 오류 처리 강화
+        // 페이지 로드 및 Firebase 초기화 - 성능 최적화
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🌟 Minah Teacher\'s Class Points 시작!');
+            console.log('페이지 로드 완료 - 성능 최적화 버전');
             
             // 즉시 로컬 인증 상태 확인 (가장 빠른 경로)
             const savedAuth = localStorage.getItem('teacherVerified');
             const savedEmail = localStorage.getItem('teacherEmail');
             
             if (savedAuth === 'true' && savedEmail) {
-                console.log('✅ 로컬 인증 상태 발견:', savedEmail);
+                console.log('로컬 인증 상태 발견:', savedEmail);
                 currentUser = { 
                     email: savedEmail, 
                     uid: localStorage.getItem('teacherUid') || 'local-user' 
                 };
                 showMainApp();
                 
-                // 백그라운드에서 Firebase 초기화 (비동기, 오류 무시)
-                setTimeout(function() {
-                    try {
-                        initializeFirebaseBackground();
-                    } catch (error) {
-                        // Firebase 오류 무시 - 로컬 모드로 계속
-                    }
-                }, 1000);
+                // 백그라운드에서 Firebase 초기화 (비동기)
+                setTimeout(initializeFirebaseBackground, 1000);
                 return;
             }
             
             // 로그인 화면 먼저 표시 (빠른 UI 응답)
             showLoginScreen();
             
-            // Firebase 초기화는 백그라운드에서 (지연 로딩, 오류 무시)
+            // Firebase 초기화는 백그라운드에서 (지연 로딩)
             setTimeout(function() {
-                try {
-                    initializeFirebaseForLogin();
-                } catch (error) {
-                    console.log('Firebase 없이 로컬 모드로 실행');
-                }
+                initializeFirebaseForLogin();
             }, 500);
         });
 
@@ -812,7 +645,7 @@
             if (firebaseReady && auth) {
                 console.log('로그인용 Firebase 준비 완료');
                 
-                // 리다이렉트 결과 확인 (안정성 개선)
+                // 리다이렉트 결과 확인 (비동기)
                 auth.getRedirectResult().then(function(result) {
                     if (result && result.user) {
                         console.log('리다이렉트 로그인 성공:', result.user.email);
@@ -827,12 +660,6 @@
                     }
                 }).catch(function(error) {
                     console.warn('리다이렉트 결과 확인 실패:', error);
-                    // Cross-Origin-Opener-Policy 오류 무시 (정상 동작)
-                    if (error.code !== 'auth/popup-closed-by-user' && 
-                        error.code !== 'auth/cancelled-popup-request' &&
-                        !error.message.includes('Cross-Origin-Opener-Policy')) {
-                        console.error('예상치 못한 리다이렉트 오류:', error);
-                    }
                 });
                 
                 // 인증 상태 리스너 설정 (한 번만)
@@ -928,16 +755,9 @@
             initializeApp();
         }
 
-        // 구글 로그인 - 안정성 개선 버전
+        // 구글 로그인 - 모든 브라우저 호환
         document.getElementById('googleLoginBtn').addEventListener('click', function() {
             console.log('로그인 버튼 클릭됨');
-            
-            // 버튼 비활성화 (중복 클릭 방지)
-            const loginBtn = document.getElementById('googleLoginBtn');
-            const signupBtn = document.getElementById('googleSignupBtn');
-            loginBtn.disabled = true;
-            signupBtn.disabled = true;
-            loginBtn.innerHTML = '🔄 로그인 중...';
             
             // Firebase 상태 확인 및 재초기화
             if (!firebaseInitialized) {
@@ -945,7 +765,6 @@
                 const initialized = initializeFirebase();
                 if (!initialized) {
                     console.log('Firebase 초기화 실패, 데모 모드로 진입');
-                    resetLoginButtons();
                     startDemoMode();
                     return;
                 }
@@ -958,64 +777,47 @@
                     provider.addScope('email');
                     provider.addScope('profile');
                     
-                    // 항상 리다이렉트 방식 사용 (안정성 최우선)
-                    console.log('안전한 리다이렉트 로그인 시작');
-                    auth.signInWithRedirect(provider);
+                    // 브라우저 환경 감지
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    const isSmallScreen = window.innerWidth <= 768;
+                    const hasTouch = 'ontouchstart' in window;
                     
+                    console.log('환경 감지:', { isMobile, isSmallScreen, hasTouch });
+                    
+                    // 모든 모바일 환경에서 리다이렉트 사용
+                    if (isMobile || isSmallScreen || hasTouch) {
+                        console.log('모바일/터치 환경 - 리다이렉트 로그인');
+                        auth.signInWithRedirect(provider);
+                    } else {
+                        // 데스크톱에서 팝업 시도
+                        console.log('데스크톱 환경 - 팝업 로그인 시도');
+                        auth.signInWithPopup(provider).then(function(result) {
+                            console.log('팝업 로그인 성공:', result.user.email);
+                        }).catch(function(error) {
+                            console.warn('팝업 실패, 리다이렉트로 전환:', error.code);
+                            if (error.code === 'auth/popup-blocked' || 
+                                error.code === 'auth/popup-closed-by-user' ||
+                                error.code === 'auth/cancelled-popup-request') {
+                                auth.signInWithRedirect(provider);
+                            } else {
+                                console.error('로그인 오류:', error);
+                                startDemoMode();
+                            }
+                        });
+                    }
                 } catch (error) {
                     console.error('Firebase 로그인 오류:', error);
-                    resetLoginButtons();
-                    
-                    // 3초 후 데모 모드 제안
-                    setTimeout(() => {
-                        if (confirm('🔧 로그인에 문제가 있습니다.\n\n데모 모드로 체험해보시겠습니까?\n(모든 기능을 안전하게 사용할 수 있습니다)')) {
-                            startDemoMode();
-                        }
-                    }, 1000);
+                    startDemoMode();
                 }
             } else {
                 console.log('Firebase 사용 불가, 데모 모드 시작');
-                resetLoginButtons();
                 startDemoMode();
             }
         });
         
-        // 로그인 버튼 리셋 함수
-        function resetLoginButtons() {
-            const loginBtn = document.getElementById('googleLoginBtn');
-            const signupBtn = document.getElementById('googleSignupBtn');
-            
-            if (loginBtn) {
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = `
-                    <svg class="w-6 h-6 mr-3" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    구글 계정으로 로그인
-                `;
-            }
-            
-            if (signupBtn) {
-                signupBtn.disabled = false;
-                signupBtn.innerHTML = `
-                    <svg class="w-6 h-6 mr-3" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    구글 계정으로 회원가입
-                `;
-            }
-        }
-
         // 데모 모드 시작
         function startDemoMode() {
             console.log('데모 모드 시작');
-            resetLoginButtons();
             alert('🎯 데모 모드로 진입합니다!\n\n✅ 모든 기능을 체험할 수 있습니다\n✅ 데이터는 브라우저에 안전하게 저장됩니다\n✅ 실제 구글 로그인과 동일한 경험을 제공합니다');
             currentUser = { 
                 email: 'demo@teacher.com', 
@@ -1025,16 +827,9 @@
             showVerificationScreen(currentUser);
         }
 
-        // 구글 회원가입 - 안정성 개선 버전
+        // 구글 회원가입 - 모든 브라우저 호환
         document.getElementById('googleSignupBtn').addEventListener('click', function() {
             console.log('회원가입 버튼 클릭됨');
-            
-            // 버튼 비활성화 (중복 클릭 방지)
-            const loginBtn = document.getElementById('googleLoginBtn');
-            const signupBtn = document.getElementById('googleSignupBtn');
-            loginBtn.disabled = true;
-            signupBtn.disabled = true;
-            signupBtn.innerHTML = '🔄 가입 중...';
             
             // Firebase 상태 확인 및 재초기화
             if (!firebaseInitialized) {
@@ -1042,7 +837,6 @@
                 const initialized = initializeFirebase();
                 if (!initialized) {
                     console.log('Firebase 초기화 실패, 데모 모드로 진입');
-                    resetLoginButtons();
                     startDemoMode();
                     return;
                 }
@@ -1058,24 +852,40 @@
                         prompt: 'select_account'
                     });
                     
-                    // 항상 리다이렉트 방식 사용 (안정성 최우선)
-                    console.log('안전한 리다이렉트 회원가입 시작');
-                    auth.signInWithRedirect(provider);
+                    // 브라우저 환경 감지
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    const isSmallScreen = window.innerWidth <= 768;
+                    const hasTouch = 'ontouchstart' in window;
                     
+                    console.log('환경 감지:', { isMobile, isSmallScreen, hasTouch });
+                    
+                    // 모든 모바일 환경에서 리다이렉트 사용
+                    if (isMobile || isSmallScreen || hasTouch) {
+                        console.log('모바일/터치 환경 - 리다이렉트 회원가입');
+                        auth.signInWithRedirect(provider);
+                    } else {
+                        // 데스크톱에서 팝업 시도
+                        console.log('데스크톱 환경 - 팝업 회원가입 시도');
+                        auth.signInWithPopup(provider).then(function(result) {
+                            console.log('팝업 회원가입 성공:', result.user.email);
+                        }).catch(function(error) {
+                            console.warn('팝업 실패, 리다이렉트로 전환:', error.code);
+                            if (error.code === 'auth/popup-blocked' || 
+                                error.code === 'auth/popup-closed-by-user' ||
+                                error.code === 'auth/cancelled-popup-request') {
+                                auth.signInWithRedirect(provider);
+                            } else {
+                                console.error('회원가입 오류:', error);
+                                startDemoMode();
+                            }
+                        });
+                    }
                 } catch (error) {
                     console.error('Firebase 회원가입 오류:', error);
-                    resetLoginButtons();
-                    
-                    // 3초 후 데모 모드 제안
-                    setTimeout(() => {
-                        if (confirm('🔧 회원가입에 문제가 있습니다.\n\n데모 모드로 체험해보시겠습니까?\n(모든 기능을 안전하게 사용할 수 있습니다)')) {
-                            startDemoMode();
-                        }
-                    }, 1000);
+                    startDemoMode();
                 }
             } else {
                 console.log('Firebase 사용 불가, 데모 모드 시작');
-                resetLoginButtons();
                 startDemoMode();
             }
         });
@@ -2702,32 +2512,12 @@
         window.showRanking = showRanking;
         window.updatePointsView = updatePointsView;
 
-        // 전역 오류 처리기 - 모든 404 오류 완전 차단
-        window.addEventListener('error', function(event) {
-            // 모든 외부 리소스 오류 완전 차단
-            console.log('🔧 외부 리소스 오류 자동 처리됨');
-            event.preventDefault();
-            event.stopPropagation();
-            return false;
-        }, true);
-
-        // 네트워크 오류도 차단
-        window.addEventListener('unhandledrejection', function(event) {
-            if (event.reason && (
-                event.reason.toString().includes('404') ||
-                event.reason.toString().includes('Failed to fetch') ||
-                event.reason.toString().includes('cdn-cgi')
-            )) {
-                console.log('🔧 네트워크 오류 자동 처리됨');
-                event.preventDefault();
-                return false;
-            }
-        });
-
         // 페이지 로드시 기본 화면 표시
         window.addEventListener('load', () => {
-            console.log('✨ 앱 로드 완료 - 모든 오류 차단됨');
+            console.log('Minah Teacher\'s Class Points 시작!');
+            // 기본적으로 로그인 화면 표시
+            showLoginScreen();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9715be98b373eaab',t:'MTc1NTU2NTU0Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971966ef52dbd1f2',t:'MTc1NTYwMzg5OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
